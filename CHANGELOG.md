@@ -5,6 +5,8 @@
 - Admin: Checkout Block fields added with `woocommerce_register_additional_checkout_field()` are listed as managed by their own plugin (SPEC 2.5).
 - Number conditions (cart subtotal, total, quantity, weight) no longer offer "is empty" / "is not empty", as in SPEC §5; these values are never empty.
 - Translation template updated with the 0.1.1 strings.
+- E2E: `npm run test:e2e:smoke` runs a representative set of 21 browser tests (tag `@smoke`) covering every target type, every action family, each kind of condition source, the classic checkout, the Checkout Block and the admin screen.
+- GitHub: README, CONTRIBUTING, SECURITY, LICENSE (GPL-2.0), issue and pull request templates. LICENSE is included in the zip.
 - Tests: exhaustive PHP/JS parity matrix (4,290 operator cases, 504 action combinations, 2,955 AND/OR shapes) with a SPEC oracle, all 2,530 target × source × operator combinations of the schema, every source in every request mode, every target × action through WooCommerce hooks, server refusals, REST API, settings, uninstall, classic runtime in a DOM.
 
 ## 0.1.1 — 2026-10-18

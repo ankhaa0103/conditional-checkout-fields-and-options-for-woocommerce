@@ -73,48 +73,58 @@ async function placeBlockOrder( page ) {
 	);
 }
 
-test( 'B1: payment rules apply to the Checkout Block', async ( { page } ) => {
-	h.setRules( [
-		h.rule( 'b1', 'payment', 'cod', 'disable', [
-			[ { source: 'cart.qty', operator: 'gte', value: 2 } ],
-		] ),
-	] );
+test(
+	'B1: payment rules apply to the Checkout Block',
+	{ tag: '@smoke' },
+	async ( { page } ) => {
+		h.setRules( [
+			h.rule( 'b1', 'payment', 'cod', 'disable', [
+				[ { source: 'cart.qty', operator: 'gte', value: 2 } ],
+			] ),
+		] );
 
-	await h.fillCart( page, fx, { light: 1 } );
-	await openBlockCheckout( page );
-	await expect( paymentOptions( page ) ).toContainText( 'Cash on delivery' );
+		await h.fillCart( page, fx, { light: 1 } );
+		await openBlockCheckout( page );
+		await expect( paymentOptions( page ) ).toContainText(
+			'Cash on delivery'
+		);
 
-	await h.fillCart( page, fx, { light: 2 } );
-	await openBlockCheckout( page );
-	await expect( paymentOptions( page ) ).not.toContainText(
-		'Cash on delivery'
-	);
-	await expect( paymentOptions( page ) ).toContainText(
-		'Direct bank transfer'
-	);
-} );
+		await h.fillCart( page, fx, { light: 2 } );
+		await openBlockCheckout( page );
+		await expect( paymentOptions( page ) ).not.toContainText(
+			'Cash on delivery'
+		);
+		await expect( paymentOptions( page ) ).toContainText(
+			'Direct bank transfer'
+		);
+	}
+);
 
-test( 'B2: shipping rules apply to the Checkout Block', async ( { page } ) => {
-	h.setRules( [
-		h.rule( 'b2', 'shipping', 'free_shipping', 'disable', [
-			[
-				{
-					source: 'cart.categories',
-					operator: 'any_in',
-					value: [ String( fx.terms[ 0 ].id ) ],
-				},
-			],
-		] ),
-	] );
+test(
+	'B2: shipping rules apply to the Checkout Block',
+	{ tag: '@smoke' },
+	async ( { page } ) => {
+		h.setRules( [
+			h.rule( 'b2', 'shipping', 'free_shipping', 'disable', [
+				[
+					{
+						source: 'cart.categories',
+						operator: 'any_in',
+						value: [ String( fx.terms[ 0 ].id ) ],
+					},
+				],
+			] ),
+		] );
 
-	await h.fillCart( page, fx, { light: 1, heavy: 1 } );
-	await openBlockCheckout( page );
-	await fillBlockAddress( page );
-	await expect( shippingOptions( page ) ).toContainText( 'CCFO Flat' );
-	await expect( shippingOptions( page ) ).not.toContainText(
-		'Free shipping'
-	);
-} );
+		await h.fillCart( page, fx, { light: 1, heavy: 1 } );
+		await openBlockCheckout( page );
+		await fillBlockAddress( page );
+		await expect( shippingOptions( page ) ).toContainText( 'CCFO Flat' );
+		await expect( shippingOptions( page ) ).not.toContainText(
+			'Free shipping'
+		);
+	}
+);
 
 test( 'B3: require rules are enforced when the block places the order', async ( {
 	page,

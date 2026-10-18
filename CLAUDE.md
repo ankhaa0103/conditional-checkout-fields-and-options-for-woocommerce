@@ -11,6 +11,8 @@
 4. **Шалгаагүй зүйлийг "ажиллаж байна" гэж бичихгүй.** Тайланд "туршсан / туршаагүй"-г тусад нь бич.
 5. **Хамрах хүрээнээс гарахгүй.** Талбар нэмэх/устгах, label/placeholder/default засах, gateway/shipping method үүсгэх, нэмэлт төлбөр, VIES, татварын хувь зохиох, checkout дизайн/дараалал — **хийхгүй** (SPEC §6).
 6. Totals-ыг өөрөө тооцохгүй. Зөвхөн WooCommerce-ийн тооцооллын hook-оор нөлөөлнө.
+7. **Тест болон WP/WC эх кодын шалгалтыг үргэлж brand.mn дээр хийнэ.**
+8. **Кодын засвар бүрийн дараа:** шалгалтуудыг ажиллуулна → `npm run build` → `npm run plugin-zip` → `powershell -File tools/deploy.ps1` → commit → `git push origin main` (GitHub: `ankhaa0103/conditional-checkout-fields-and-options-for-woocommerce`). Энгийн шалгалтад `npm run test:e2e:smoke`, өргөн өөрчлөлтөд бүрэн `npm run test:e2e` ажиллуулна.
 
 ## Орчин
 
