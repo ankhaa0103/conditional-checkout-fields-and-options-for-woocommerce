@@ -11,7 +11,7 @@
 | Нуугдсан талбарын утгыг устгах | ✅ | — | |
 | Payment `enable` / `disable` | ✅ | ✅ | Ижил `woocommerce_available_payment_gateways` filter. Block UI нь Store API-ийн `payment_methods`-ийг дагадаг. |
 | Payment/shipping/tax дүрэм талбарын утгаас хамаарах (`field:*`) | ✅ Нөхцөлийн үр дүн өөрчлөгдөхөд checkout шинэчлэгдэнэ: талбараас гарахад шууд, бичиж байхад "Live update delay" (анхдагч 5 сек)-ийн дараа | ⚠️ Block хаягийн талбарын өөрчлөлтийг серверт өөрөө илгээдэг тул core хаягийн талбарт ажиллана. Бусад талбар Block-д байхгүй. | 0.1.1-д засагдсан: өмнө нь Classic-д зөвхөн профайлд хадгалсан утгаар ажилладаг байсан. |
-| Shipping `enable` / `disable` | ✅ | ✅ | Ижил `woocommerce_package_rates` filter + кэшийн hash. |
+| Shipping `enable` / `disable` | ✅ | ✅ | Ижил `woocommerce_package_rates` filter + кэшийн hash. Classic-д хасагдсан rate-ийг POST-оор хүчээр сонговол WooCommerce түүнийг санал болгож буй rate-ээр автоматаар сольдог (`wc_get_chosen_shipping_method_for_package`). Store API нь `woocommerce_rest_invalid_shipping_option` алдаа буцаадаг. Аль ч тохиолдолд хасагдсан rate захиалгад орохгүй. |
 | Бүх аргыг хассан үеийн мессеж | ✅ Тохируулсан текст | ⚠️ Block-ийн өөрийн мессеж | Захиалга аль ч тохиолдолд үүсэхгүй. |
 | `hide_tax_note` | ✅ | ✅ (CSS, `extensions.ccfo`) | Зөвхөн "татвартай үнэ" горимд утга учиртай. |
 | `set_vat_exempt`, `set_tax_class` | ✅ | ✅ | WooCommerce-ийн тооцооллоор. Totals-ийг сервер тооцно. |
@@ -37,4 +37,4 @@
 | Woodmart checkout layout | WooCommerce-ийн **checkout хуудас** болгон тохируулсан хуудсан дээр Checkout Block-ийг өөрийн classic layout-оор солидог. Энэ тохиолдолд Classic-ийн бүх дүрэм ажиллана. Block-ийн тестийг checkout хуудас биш, тусдаа хуудсан дээр хийсэн. |
 | WC `address-i18n.js` | Улс солигдоход required төлвийг дахин бичдэг. Бид locale талбаруудын шинэ төлвийг base болгож, дүрмээ дахин хэрэглэдэг. |
 | Гуравдагч талын classic талбар | `woocommerce_checkout_fields` / `woocommerce_billing_fields`-ээр бүртгэгдсэн бол автоматаар танигдана (тестэд `billing_vat`). |
-| Additional Checkout Fields API (Block) | Эзэмшигч plugin-ий өөрийн дүрмээр удирдагдана. Бид өөрчлөхгүй. |
+| Additional Checkout Fields API (Block) | Эзэмшигч plugin-ий өөрийн дүрмээр удирдагдана. Бид өөрчлөхгүй. Admin дээр "өөрийн plugin-оор удирдагддаг" жагсаалтаар харагдана. |

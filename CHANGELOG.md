@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Admin: Checkout Block fields added with `woocommerce_register_additional_checkout_field()` are listed as managed by their own plugin (SPEC 2.5).
+- Number conditions (cart subtotal, total, quantity, weight) no longer offer "is empty" / "is not empty", as in SPEC §5; these values are never empty.
+- Translation template updated with the 0.1.1 strings.
+- Tests: exhaustive PHP/JS parity matrix (4,290 operator cases, 504 action combinations, 2,955 AND/OR shapes) with a SPEC oracle, all 2,530 target × source × operator combinations of the schema, every source in every request mode, every target × action through WooCommerce hooks, server refusals, REST API, settings, uninstall, classic runtime in a DOM.
+
 ## 0.1.1 — 2026-10-18
 
 - Fix: payment, shipping and tax rules that read a checkout field (for example "offer BACS when the company name is filled in") now work for guests and for values typed during checkout. The classic checkout script was only loaded for field rules, so WooCommerce never refreshed the payment list when such a field changed; it only worked when the value was already saved in the customer profile.

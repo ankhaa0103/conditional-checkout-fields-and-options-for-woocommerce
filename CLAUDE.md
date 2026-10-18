@@ -52,7 +52,13 @@ E2E хурдны дүрэм (`tests/e2e/helpers.js`):
 - Admin хуудсанд `h.useAdmin( page )` ашиглана. Энэ нь `global-setup.js`-ийн хадгалсан cookie-г нэмдэг. Хуудсаар нэвтрэхийг зөвхөн admin биш хэрэглэгчид ашиглана (`h.login( page, 'ccfo_customer' )`). Тохиргоонд `test.use({ storageState })` бүү хэрэглэ: `browser.newPage()`-ээр нээсэн худалдан авагчийн хуудсууд ч admin болно.
 - Сагсыг `h.fillCart()` (Store API) дүүргэнэ. Navigation хийхдээ `waitUntil: 'domcontentloaded'` ашиглана. Classic checkout-ыг `h.openClassicCheckout()`-оор нээнэ, энэ нь `update_order_review`-ийг хүлээдэг.
 - WP-CLI-ийг `h.wp()`-оор дуудна: Xdebug унтраастай, хувийн OPcache кэш (`.cache/opcache-cli`) ашиглаж, crash гарвал кэшийг цэвэрлээд дахин оролдоно. Option унших, `ccfo_*` option бичих, user meta үйлдэлд plugin ачаалахгүй. WooCommerce-ийн option бичих эсвэл `eval` хийхэд plugin ачаална. Байхгүй байж болох option-ийг `h.deleteOption()`-оор устгана.
-- `workers: 1` хэвээр: тестүүд нэг `ccfo_rules` option-ийг хуваалцдаг. Tooling-ийн тэмдэглэл: TypeScript 5-ийг dev dependency болгон тогтоосон (ESLint-ийн TS plugin TS 6-тай нийцдэггүй). Windows дээр Python-оор файл бичихдээ `newline=''` ашиглана, эс бөгөөс CRLF болж PHPCS алдаа өгнө.
+- `workers: 1` хэвээр: тестүүд нэг `ccfo_rules` option-ийг хуваалцдаг.
+
+Тестийн бүтэц (E2E-ээс бусад):
+- `tests/unit/MatrixTest.php` + `tests/js/matrix.test.js`: `tests/fixtures/matrix.json` (operator × утга, action-уудын хослол, AND/OR хэлбэр) дээр PHP = JS = SPEC oracle. Зан төлөвийг зориуд өөрчилбөл `UPDATE_MATRIX=1 npm run test:js`-ээр дахин үүсгэнэ.
+- `tests/unit/SchemaMatrixTest.php`: SPEC §3–§5-ийн хүснэгтүүдийг кодоос биш SPEC-ээс хуулж, бүх target × source × operator хослолыг шалгана. SPEC өөрчлөгдвөл энэ хүснэгтийг эхэлж засна.
+- `tests/integration/`: `SourcesTest` (source бүр горим бүрт), `HookMatrixTest` (target × action WooCommerce hook-оор, серверийн татгалзал), `AdminApiTest` (REST, catalog, тохиргоо, header, HPOS), `SpecExtrasTest` (татвар, priority, uninstall).
+- `tests/js/runtime.test.js`: classic runtime-ийг jsdom + jQuery 3.7.1 дээр шалгана. Tooling-ийн тэмдэглэл: TypeScript 5-ийг dev dependency болгон тогтоосон (ESLint-ийн TS plugin TS 6-тай нийцдэггүй). Windows дээр Python-оор файл бичихдээ `newline=''` ашиглана, эс бөгөөс CRLF болж PHPCS алдаа өгнө.
 
 ## Кодын стандарт
 

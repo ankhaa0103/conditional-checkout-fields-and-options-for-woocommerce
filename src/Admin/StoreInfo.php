@@ -179,18 +179,50 @@ final class StoreInfo {
 		}
 
 		return [
-			'fields'          => $this->fields(),
-			'gateways'        => $this->gateways(),
-			'shipping'        => $this->shipping(),
-			'roles'           => $roles,
-			'countries'       => WC()->countries->get_countries(),
-			'states'          => WC()->countries->get_states(),
-			'taxClasses'      => $tax_classes,
-			'categories'      => self::terms( 'product_cat' ),
-			'tags'            => self::terms( 'product_tag' ),
-			'shippingClasses' => self::terms( 'product_shipping_class' ),
-			'store'           => $this->store_flags(),
+			'fields'           => $this->fields(),
+			'gateways'         => $this->gateways(),
+			'shipping'         => $this->shipping(),
+			'roles'            => $roles,
+			'countries'        => WC()->countries->get_countries(),
+			'states'           => WC()->countries->get_states(),
+			'taxClasses'       => $tax_classes,
+			'categories'       => self::terms( 'product_cat' ),
+			'tags'             => self::terms( 'product_tag' ),
+			'shippingClasses'  => self::terms( 'product_shipping_class' ),
+			'additionalFields' => self::additional_fields(),
+			'store'            => $this->store_flags(),
 		];
+	}
+
+	/**
+	 * Fields registered with woocommerce_register_additional_checkout_field().
+	 *
+	 * They exist only in the Checkout Block and follow their own plugin's rules
+	 * (ARCHITECTURE §6), so the admin lists them as "managed by their plugin".
+	 *
+	 * @return list<array{key: string, label: string, location: string, required: bool}>
+	 */
+	public static function additional_fields(): array {
+		$service = \Automattic\WooCommerce\Blocks\Domain\Services\CheckoutFields::class;
+		if ( ! class_exists( \Automattic\WooCommerce\Blocks\Package::class ) || ! class_exists( $service ) ) {
+			return [];
+		}
+		try {
+			$fields = \Automattic\WooCommerce\Blocks\Package::container()->get( $service )->get_additional_fields();
+		} catch ( \Throwable $e ) {
+			return [];
+		}
+
+		$out = [];
+		foreach ( (array) $fields as $key => $field ) {
+			$out[] = [
+				'key'      => (string) $key,
+				'label'    => wp_strip_all_tags( (string) ( $field['label'] ?? $key ) ),
+				'location' => (string) ( $field['location'] ?? '' ),
+				'required' => true === ( $field['required'] ?? false ),
+			];
+		}
+		return $out;
 	}
 
 	/**

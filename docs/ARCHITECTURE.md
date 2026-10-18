@@ -135,7 +135,7 @@ tools/        wp-cli.phar (gitignored), fixtures.sh
 **Block дээрх талбарын дүрэм — эцсийн шийдвэр:**
 1. `require` дүрэм нь Block-ийн талбаруудад (billing/shipping хаяг, `billing_email`, `order_comments`) захиалга илгээх үед серверт шалгагдана (`Blocks\StoreApi::validate_order`, E2E B3). Форм дээр `*` гарахгүй.
 2. `show`/`hide` дүрэм Block-д **хэрэгжихгүй**. `woocommerce_get_country_locale`-ийг ашиглах хувилбараас татгалзсан. Шалтгаан: зөвхөн улсаар нөхцөлдөнө, billing/shipping хоёрт ижил үйлчилнэ, мөн Classic-ийн `address-i18n.js`-д давхар нөлөөлнө. Linter нь дүрэм бүрт "classic only" анхааруулга гаргана.
-3. Additional Checkout Fields API-ийн талбарыг эзэмшигч plugin нь удирдана.
+3. Additional Checkout Fields API-ийн талбарыг эзэмшигч plugin нь удирдана. Catalog нь тэдгээрийг `additionalFields` нэрээр тусад нь буцаадаг (`StoreInfo::additional_fields()`). Admin дээр "өөрийн plugin-оор удирдагддаг" гэж харуулна, rule-ийн target болгон санал болгохгүй.
 
 ## 7. Shipping rate-ийн кэш (чухал)
 

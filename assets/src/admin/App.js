@@ -657,6 +657,21 @@ export default function App() {
 					) }
 			</Notice>
 
+			{ catalog.additionalFields?.length > 0 && (
+				<Notice status="info" isDismissible={ false }>
+					{ sprintf(
+						/* translators: %s: list of field names */
+						__(
+							'Checkout Block fields managed by their own plugin (rules here cannot target them): %s',
+							'conditional-checkout-fields-and-options-for-woocommerce'
+						),
+						catalog.additionalFields
+							.map( ( f ) => `${ f.label } (${ f.key })` )
+							.join( ', ' )
+					) }
+				</Notice>
+			) }
+
 			<TabPanel
 				className="ccfo-tabs"
 				tabs={ [

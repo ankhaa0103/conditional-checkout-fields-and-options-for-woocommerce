@@ -59,7 +59,7 @@ final class Definitions {
 	 */
 	public const OPERATORS = [
 		self::TYPE_STRING => [ 'equals', 'not_equals', 'contains', 'not_contains', 'in', 'not_in', 'empty', 'not_empty' ],
-		self::TYPE_NUMBER => [ 'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'empty', 'not_empty' ],
+		self::TYPE_NUMBER => [ 'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between' ],
 		self::TYPE_BOOL   => [ 'is_true', 'is_false' ],
 		self::TYPE_LIST   => [ 'any_in', 'all_in', 'none_in', 'only_in', 'empty', 'not_empty' ],
 		self::TYPE_FIELD  => [ 'equals', 'not_equals', 'contains', 'not_contains', 'in', 'not_in', 'empty', 'not_empty', 'checked', 'unchecked', 'gt', 'gte', 'lt', 'lte' ],
