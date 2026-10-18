@@ -1,15 +1,15 @@
-# Copyright (C) 2026 Ankhbayar
+# Copyright (C) 2026 Ankhbayar Bayanterbish
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Conditional Checkout Fields and Options for WooCommerce 0.1.1\n"
+"Project-Id-Version: Conditional Checkout Fields and Options for WooCommerce 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/conditional-checkout-fields-and-options-for-woocommerce\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-18T10:52:02+08:00\n"
+"POT-Creation-Date: 2026-10-18T11:51:15+08:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: conditional-checkout-fields-and-options-for-woocommerce\n"
@@ -21,7 +21,7 @@ msgstr ""
 
 #. Plugin URI of the plugin
 #: conditional-checkout-fields-and-options-for-woocommerce.php
-msgid "https://brand.mn/"
+msgid "https://github.com/ankhaa0103/conditional-checkout-fields-and-options-for-woocommerce"
 msgstr ""
 
 #. Description of the plugin
@@ -31,219 +31,219 @@ msgstr ""
 
 #. Author of the plugin
 #: conditional-checkout-fields-and-options-for-woocommerce.php
-msgid "Ankhbayar"
+msgid "Ankhbayar Bayanterbish"
 msgstr ""
 
 #: conditional-checkout-fields-and-options-for-woocommerce.php:59
 msgid "Conditional Checkout Fields and Options for WooCommerce needs WooCommerce 9.9.3 or newer."
 msgstr ""
 
-#: src/Admin/Menu.php:43
-#: src/Admin/Menu.php:44
-#: src/Admin/Menu.php:56
+#: src/Admin/Menu.php:45
+#: src/Admin/Menu.php:46
+#: src/Admin/Menu.php:58
 msgid "Checkout Rules"
 msgstr ""
 
-#: src/Admin/Menu.php:56
+#: src/Admin/Menu.php:58
 msgid "Loading…"
 msgstr ""
 
-#: src/Admin/Menu.php:88
+#: src/Admin/Menu.php:90
 #: build/admin.js:5
 msgid "Rules"
 msgstr ""
 
 #. translators: 1: rule ids, 2: time ago
-#: src/Admin/Notices.php:47
+#: src/Admin/Notices.php:49
 #, php-format
 msgid "Checkout rules %1$s removed every payment method for a customer %2$s ago, so they could not order."
 msgstr ""
 
 #. translators: 1: rule ids, 2: time ago
-#: src/Admin/Notices.php:49
+#: src/Admin/Notices.php:51
 #, php-format
 msgid "Checkout rules %1$s removed every shipping method for a customer %2$s ago, so they could not order."
 msgstr ""
 
-#: src/Admin/Notices.php:55
+#: src/Admin/Notices.php:57
 msgid "Review the rules"
 msgstr ""
 
-#: src/Blocks/StoreApi.php:100
+#: src/Blocks/StoreApi.php:102
 msgid "Whether a checkout rule hides the \"includes tax\" note."
 msgstr ""
 
 #. translators: %s: field name
-#: src/Blocks/StoreApi.php:158
+#: src/Blocks/StoreApi.php:160
 #, php-format
 msgid "%s is a required field."
 msgstr ""
 
-#: src/Orders.php:63
+#: src/Orders.php:65
 msgid "Checkout rules applied"
 msgstr ""
 
 #. translators: %s: field key, gateway id or shipping method id
-#: src/Rules/Linter.php:81
+#: src/Rules/Linter.php:83
 #, php-format
 msgid "\"%s\" is not active in the store now, so this rule does nothing."
 msgstr ""
 
 #. translators: %s: field key
-#: src/Rules/Linter.php:92
+#: src/Rules/Linter.php:94
 #, php-format
 msgid "Condition field \"%s\" is not on the checkout now; its value is always empty."
 msgstr ""
 
-#: src/Rules/Linter.php:108
+#: src/Rules/Linter.php:110
 msgid "The \"includes tax\" note only shows when taxes are enabled and cart prices are displayed including tax, so this rule does nothing now."
 msgstr ""
 
-#: src/Rules/Linter.php:112
+#: src/Rules/Linter.php:114
 msgid "Taxes are disabled in WooCommerce, so this rule does nothing."
 msgstr ""
 
-#: src/Rules/Linter.php:116
+#: src/Rules/Linter.php:118
 msgid "Orders without this field may not be processed correctly (emails, taxes, shipping)."
 msgstr ""
 
-#: src/Rules/Linter.php:120
+#: src/Rules/Linter.php:122
 msgid "This rule has no conditions and always applies."
 msgstr ""
 
-#: src/Rules/Linter.php:137
+#: src/Rules/Linter.php:139
 msgid "Checkout Block: the field is checked when the order is placed, but it is not marked as required in the form."
 msgstr ""
 
-#: src/Rules/Linter.php:141
+#: src/Rules/Linter.php:143
 msgid "Checkout Block: showing, hiding or requiring this field is not possible with the official WooCommerce APIs. The rule works in the classic checkout only."
 msgstr ""
 
-#: src/Rules/Linter.php:217
+#: src/Rules/Linter.php:219
 msgid "Together with other rules, this rule can remove every payment method. Customers then see your \"no payment method\" message and cannot order."
 msgstr ""
 
-#: src/Rules/Linter.php:218
+#: src/Rules/Linter.php:220
 msgid "Together with other rules, this rule can remove every shipping method. Customers then see your \"no shipping method\" message and cannot order."
 msgstr ""
 
 #. translators: 1: other rule title, 2: winning rule title
-#: src/Rules/Linter.php:234
+#: src/Rules/Linter.php:236
 #, php-format
 msgid "Conflicts with \"%1$s\" when both match. \"%2$s\" wins (lower priority number wins; on a tie the hiding/disabling rule wins)."
 msgstr ""
 
-#: src/Rules/RuleRepository.php:87
+#: src/Rules/RuleRepository.php:89
 msgid "The rules were changed in another window. Reload the page to get the latest rules."
 msgstr ""
 
-#: src/Rules/RuleRepository.php:100
+#: src/Rules/RuleRepository.php:102
 msgid "Some rules are not valid."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:46
+#: src/Rules/RuleSchema.php:48
 msgid "Rules must be a list."
 msgstr ""
 
 #. translators: %d: maximum number of rules
-#: src/Rules/RuleSchema.php:52
+#: src/Rules/RuleSchema.php:54
 #, php-format
 msgid "No more than %d rules are allowed."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:64
+#: src/Rules/RuleSchema.php:66
 msgid "Rule id is used more than once."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:92
+#: src/Rules/RuleSchema.php:94
 msgid "Rule must be an object."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:98
+#: src/Rules/RuleSchema.php:100
 msgid "Rule id must be 1-64 letters, digits, \"-\" or \"_\"."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:108
+#: src/Rules/RuleSchema.php:110
 msgid "Priority must be a whole number from 0 to 1000."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:115
+#: src/Rules/RuleSchema.php:117
 msgid "Unknown target type."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:123
+#: src/Rules/RuleSchema.php:125
 msgid "This action is not allowed for the target."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:156
+#: src/Rules/RuleSchema.php:158
 msgid "Target key is missing or invalid."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:180
+#: src/Rules/RuleSchema.php:182
 msgid "Choose a tax class."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:185
+#: src/Rules/RuleSchema.php:187
 msgid "The tax class does not exist. Only existing WooCommerce tax classes can be used."
 msgstr ""
 
 #. translators: %d: maximum number of groups
-#: src/Rules/RuleSchema.php:205
+#: src/Rules/RuleSchema.php:207
 #, php-format
 msgid "Conditions must be a list of up to %d groups."
 msgstr ""
 
 #. translators: %d: maximum number of conditions
-#: src/Rules/RuleSchema.php:213
+#: src/Rules/RuleSchema.php:215
 #, php-format
 msgid "Each group needs 1 to %d conditions."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:243
+#: src/Rules/RuleSchema.php:245
 msgid "Condition must be an object."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:250
+#: src/Rules/RuleSchema.php:252
 msgid "Unknown condition source."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:255
+#: src/Rules/RuleSchema.php:257
 msgid "This condition cannot be used for this target because it would depend on its own result."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:260
+#: src/Rules/RuleSchema.php:262
 msgid "A field rule cannot depend on the same field."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:266
+#: src/Rules/RuleSchema.php:268
 msgid "This operator is not allowed for the condition."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:291
+#: src/Rules/RuleSchema.php:293
 msgid "Choose products or terms from the list."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:370
+#: src/Rules/RuleSchema.php:372
 msgid "Enter a number."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:372
+#: src/Rules/RuleSchema.php:374
 msgid "Choose at least one value."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:374
+#: src/Rules/RuleSchema.php:376
 msgid "Enter a minimum and a maximum number."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:376
+#: src/Rules/RuleSchema.php:378
 msgid "Enter a value."
 msgstr ""
 
-#: src/Settings.php:26
+#: src/Settings.php:28
 msgid "No payment method is available for your order with the details you entered. Please check your details or contact us."
 msgstr ""
 
-#: src/Settings.php:27
+#: src/Settings.php:29
 msgid "No shipping method is available for your order with the details you entered. Please check your address and cart, or contact us."
 msgstr ""
 

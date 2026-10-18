@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Tax;
 
+defined( 'ABSPATH' ) || exit;
+
 use CCFO\Engine\Decision;
 use CCFO\Engine\Resolver;
 use CCFO\Plugin;

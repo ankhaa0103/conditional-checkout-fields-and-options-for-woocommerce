@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Engine;
 
+defined( 'ABSPATH' ) || exit;
+
 use CCFO\Rules\Definitions;
 
 /**
@@ -115,7 +117,7 @@ final class ContextFactory {
 				$posted = wc_clean( $posted );
 			}
 			if ( isset( $_POST['payment_method'] ) ) {
-				$posted['payment_method'] = wc_clean( wp_unslash( $_POST['payment_method'] ) );
+				$posted['payment_method'] = sanitize_text_field( wp_unslash( $_POST['payment_method'] ) );
 			}
 		}
 		// phpcs:enable

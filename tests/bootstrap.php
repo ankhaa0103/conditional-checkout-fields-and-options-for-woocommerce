@@ -7,6 +7,10 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', __DIR__ . '/' );
+}
+
 if ( ! function_exists( '__' ) ) {
 	/**
 	 * Translation stub.

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Engine;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Holds known source values and computes the rest on demand, once per request.
  */

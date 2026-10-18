@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Blocks;
 
+defined( 'ABSPATH' ) || exit;
+
 use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use CCFO\Engine\Resolver;
 use CCFO\Plugin;

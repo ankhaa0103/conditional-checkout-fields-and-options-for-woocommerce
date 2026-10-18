@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace CCFO\Rules;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Static rule vocabulary.
  */

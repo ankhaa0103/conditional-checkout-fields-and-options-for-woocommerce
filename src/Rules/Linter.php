@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Rules;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Pure checks over a rule set and a description of the store.
  *

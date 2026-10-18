@@ -1,0 +1,63 @@
+# Publishes a release to the WordPress.org plugin directory.
+#
+# Runs when a tag such as "1.0.1" is pushed. The tag must match the version in the
+# plugin header, CCFO_VERSION, package.json and the "Stable tag" in readme.txt.
+#
+# Repository secrets: SVN_USERNAME (WordPress.org username) and SVN_PASSWORD
+# (the SVN password from your WordPress.org profile, Account & Security).
+name: Deploy to WordPress.org
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    # Off until the plugin is approved: set the repository variable WPORG_ENABLED to "true".
+    if: vars.WPORG_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    env:
+      SLUG: conditional-checkout-fields-and-options-for-woocommerce
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check versions
+        run: |
+          v="${GITHUB_REF_NAME}"
+          grep -q "Version: ${v}$" "${SLUG}.php"
+          grep -q "define( 'CCFO_VERSION', '${v}' );" "${SLUG}.php"
+          grep -q "\"version\": \"${v}\"" package.json
+          grep -q "Stable tag: ${v}$" readme.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+          npm run plugin-zip
+          mkdir dist
+          unzip -q "${SLUG}.zip" -d dist
+
+      - name: Deploy
+        id: deploy
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          generate-zip: true
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          BUILD_DIR: dist/${{ env.SLUG }}
+          ASSETS_DIR: .wordpress-org
+
+      - name: Attach the zip to a GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.deploy.outputs.zip-path }}

@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Rules;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Loads and saves the rule set stored in the `ccfo_rules` option (autoload off).
  *

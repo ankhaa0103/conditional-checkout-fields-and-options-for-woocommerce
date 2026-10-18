@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Classic;
 
+defined( 'ABSPATH' ) || exit;
+
 use CCFO\Plugin;
 use CCFO\Settings;
 

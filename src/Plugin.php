@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO;
 
+defined( 'ABSPATH' ) || exit;
+
 use CCFO\Engine\ContextFactory;
 use CCFO\Engine\RequestLog;
 use CCFO\Rules\RuleRepository;

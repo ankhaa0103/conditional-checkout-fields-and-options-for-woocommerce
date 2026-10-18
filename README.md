@@ -286,8 +286,10 @@ assets/css/   checkout styles
 build/        compiled scripts (generated)
 languages/    translation template
 tests/        unit, integration, js, e2e, fixtures
-tools/        deploy.ps1, fixtures.php
+tools/        deploy.ps1, fixtures.php, wporg-screenshots.js, wporg-assets.js
 docs/         SPEC, ARCHITECTURE, COMPATIBILITY, MANUAL-TEST
+.wordpress-org/  WordPress.org icon, banners and screenshots (SVN /assets, not in the plugin zip)
+.github/      issue and pull request templates, WordPress.org workflows
 ```
 
 ## Release process
@@ -299,6 +301,25 @@ Every code change goes through the same steps:
 3. Deploy the copy to the test site with `tools/deploy.ps1`.
 4. Update [CHANGELOG.md](CHANGELOG.md) and, for a release, the version in the plugin header, `CCFO_VERSION`, `package.json` and `readme.txt`.
 5. Commit and push to `main`.
+
+### WordPress.org
+
+The plugin zip (`npm run plugin-zip`) contains only the files listed in `package.json` → `files`, including the human-readable sources in `assets/src` that WordPress.org requires for built scripts.
+
+First submission (once):
+
+1. Run [Plugin Check](https://wordpress.org/plugins/plugin-check/) on the zip contents and fix every error and warning.
+2. Upload the zip at <https://wordpress.org/plugins/developers/add/> while logged in as the plugin owner, and answer the review team's emails.
+3. After approval, set the SVN password in your WordPress.org profile (*Account & Security*), then add the repository secrets `SVN_USERNAME` and `SVN_PASSWORD` and the repository variable `WPORG_ENABLED` = `true` on GitHub.
+
+Each release:
+
+1. Set the same version in the plugin header, `CCFO_VERSION`, `package.json` and `readme.txt` (`Stable tag`), and add the changelog entry to `readme.txt` and [CHANGELOG.md](CHANGELOG.md).
+2. Push a tag with the bare version, e.g. `git tag 1.0.1 && git push origin 1.0.1`. The [deploy workflow](.github/workflows/wporg-deploy.yml) checks the versions, builds, commits to SVN `trunk` and `tags/<version>`, updates `/assets` from `.wordpress-org/` and attaches the zip to a GitHub release.
+
+Readme-only or asset-only changes (for example a new `Tested up to`) are published by the [assets workflow](.github/workflows/wporg-assets.yml) when they reach `main`.
+
+Screenshots and the icon and banners are generated: `node tools/wporg-screenshots.js` (needs the test site and E2E fixtures) and `node tools/wporg-assets.js`.
 
 ## Contributing
 

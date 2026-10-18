@@ -1,0 +1,27 @@
+# Updates readme.txt and the screenshots, banners and icons on WordPress.org
+# without a new release (for example a new "Tested up to" value).
+name: Update WordPress.org readme and assets
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - readme.txt
+      - .wordpress-org/**
+
+jobs:
+  assets:
+    # Off until the plugin is approved: set the repository variable WPORG_ENABLED to "true".
+    if: vars.WPORG_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: conditional-checkout-fields-and-options-for-woocommerce
+          ASSETS_DIR: .wordpress-org
+          IGNORE_OTHER_FILES: true

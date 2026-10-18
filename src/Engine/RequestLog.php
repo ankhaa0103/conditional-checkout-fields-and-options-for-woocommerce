@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Engine;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Collects applied rules (stored on the order) and "everything removed"
  * events (shown to the customer and reported to the admin).

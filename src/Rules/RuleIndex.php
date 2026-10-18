@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Rules;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Fast lookup of the rules that apply to a target.
  */

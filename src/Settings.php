@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Settings stored in the `ccfo_settings` option.
  */

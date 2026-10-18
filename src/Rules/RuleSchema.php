@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Rules;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Turns untrusted arrays (option value, REST body, import file) into Rule objects.
  *

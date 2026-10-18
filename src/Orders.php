@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Stores `_ccfo_applied_rules` through the order CRUD API (HPOS safe).
  */

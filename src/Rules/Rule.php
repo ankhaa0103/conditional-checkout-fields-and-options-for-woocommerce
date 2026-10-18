@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Rules;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * One rule: a target, an action and OR-ed groups of AND-ed conditions.
  *

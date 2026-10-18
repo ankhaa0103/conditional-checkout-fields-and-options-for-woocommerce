@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Blocks;
 
+defined( 'ABSPATH' ) || exit;
+
 use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
 use CCFO\Plugin;
 use CCFO\Rules\Definitions;

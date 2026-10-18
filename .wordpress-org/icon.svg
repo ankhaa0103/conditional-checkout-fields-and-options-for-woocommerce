@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#1e6f8f"/>
+			<stop offset="1" stop-color="#16425b"/>
+		</linearGradient>
+	</defs>
+	<rect width="256" height="256" rx="48" fill="url(#bg)"/>
+	<rect x="44" y="40" width="168" height="176" rx="18" fill="#ffffff"/>
+	<!-- Field rows -->
+	<rect x="66" y="66" width="80" height="12" rx="6" fill="#16425b" opacity=".25"/>
+	<rect x="66" y="86" width="124" height="22" rx="11" fill="none" stroke="#16425b" stroke-width="5"/>
+	<rect x="66" y="126" width="64" height="12" rx="6" fill="#16425b" opacity=".25"/>
+	<rect x="66" y="146" width="124" height="22" rx="11" fill="none" stroke="#16425b" stroke-width="5" stroke-dasharray="10 8" opacity=".5"/>
+	<!-- Condition toggle -->
+	<rect x="66" y="182" width="52" height="24" rx="12" fill="#2bb673"/>
+	<circle cx="106" cy="194" r="9" fill="#ffffff"/>
+	<!-- Branch arrow -->
+	<path d="M150 194 h26 l-8 -8 M176 194 l-8 8" fill="none" stroke="#2bb673" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

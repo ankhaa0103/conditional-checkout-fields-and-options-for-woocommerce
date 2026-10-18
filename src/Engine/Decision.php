@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Engine;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Immutable result of the Resolver.
  */

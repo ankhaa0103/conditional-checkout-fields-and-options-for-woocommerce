@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CCFO\Admin;
 
+defined( 'ABSPATH' ) || exit;
+
 use CCFO\Engine\RequestLog;
 use CCFO\Plugin;
 use CCFO\Rules\Definitions;
