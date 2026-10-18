@@ -181,6 +181,35 @@ final class HookMatrixTest extends IntegrationTestCase {
 		yield 'unmatched' => [ false ];
 	}
 
+	public function test_rules_never_add_remove_or_relabel_fields(): void {
+		// SPEC §1/§6: only visibility and required state change.
+		$this->mode( ContextFactory::RENDER );
+		$before = $this->fields();
+
+		$rules = [];
+		foreach ( $before as $fields ) {
+			foreach ( array_keys( $fields ) as $i => $key ) {
+				$action  = [ 'show', 'hide', 'require' ][ $i % 3 ];
+				$rules[] = $this->rule( 'r' . count( $rules ), 'field', (string) $key, $action, self::when( 0 === $i % 2 ) );
+			}
+		}
+		$this->rules( $rules );
+
+		foreach ( [ ContextFactory::RENDER, ContextFactory::SUBMIT ] as $mode ) {
+			$this->mode( $mode );
+			$after = $this->fields();
+			$this->assertSame( array_keys( $before ), array_keys( $after ), "fieldsets $mode" );
+			foreach ( $before as $set => $fields ) {
+				$this->assertSame( array_keys( $fields ), array_keys( $after[ $set ] ), "fields of $set $mode" );
+				foreach ( $fields as $key => $field ) {
+					foreach ( [ 'label', 'placeholder', 'default', 'priority', 'type', 'options' ] as $prop ) {
+						$this->assertSame( $field[ $prop ] ?? null, $after[ $set ][ $key ][ $prop ] ?? null, "$key.$prop $mode" );
+					}
+				}
+			}
+		}
+	}
+
 	public function test_classic_submit_refuses_a_removed_gateway_and_rate(): void {
 		$this->rules(
 			[

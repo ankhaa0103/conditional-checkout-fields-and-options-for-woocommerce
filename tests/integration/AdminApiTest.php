@@ -244,7 +244,20 @@ final class AdminApiTest extends IntegrationTestCase {
 	}
 
 	public function test_blocked_log_read_and_clear(): void {
+		$logged = [];
+		$spy    = static function ( $message, $level, $context ) use ( &$logged ) {
+			if ( 'ccfo' === ( $context['source'] ?? '' ) ) {
+				$logged[] = [ $level, $message ];
+			}
+			return $message;
+		};
+		add_filter( 'woocommerce_logger_log_message', $spy, 10, 3 );
 		Plugin::instance()->log->block( 'payment', [ 'r1', 'r2' ] );
+		remove_filter( 'woocommerce_logger_log_message', $spy, 10 );
+		// SPEC §8.3: written to the WooCommerce log with source "ccfo".
+		$this->assertSame( 'notice', $logged[0][0] ?? null );
+		$this->assertStringContainsString( 'r1, r2', $logged[0][1] ?? '' );
+
 		Plugin::instance()->log->block( 'payment', [ 'r1', 'r2' ] );
 		$this->admin();
 		$log = self::data( $this->call( 'GET', '/blocked' ) );
