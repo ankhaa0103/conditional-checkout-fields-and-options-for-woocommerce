@@ -1,0 +1,204 @@
+{
+	"operators": [
+		{ "op": "equals", "actual": "DE", "value": "de", "expect": true },
+		{ "op": "equals", "actual": "  Acme ", "value": "acme", "expect": true },
+		{ "op": "equals", "actual": "Улаанбаатар", "value": "улаанбаатар", "expect": true },
+		{ "op": "equals", "actual": null, "value": "x", "expect": false },
+		{ "op": "equals", "actual": 10, "value": "10", "expect": true },
+		{ "op": "not_equals", "actual": "MN", "value": "DE", "expect": true },
+		{ "op": "not_equals", "actual": null, "value": "DE", "expect": true },
+		{ "op": "contains", "actual": "Acme LLC", "value": "llc", "expect": true },
+		{ "op": "contains", "actual": "Acme", "value": "", "expect": false },
+		{ "op": "not_contains", "actual": "Acme", "value": "llc", "expect": true },
+		{ "op": "in", "actual": "de", "value": [ "DE", "FR" ], "expect": true },
+		{ "op": "in", "actual": "", "value": [ "DE" ], "expect": false },
+		{ "op": "not_in", "actual": "MN", "value": [ "DE", "FR" ], "expect": true },
+		{ "op": "empty", "actual": "  ", "expect": true },
+		{ "op": "empty", "actual": null, "expect": true },
+		{ "op": "empty", "actual": [], "expect": true },
+		{ "op": "empty", "actual": "0", "expect": false },
+		{ "op": "not_empty", "actual": "x", "expect": true },
+		{ "op": "not_empty", "actual": [ "a" ], "expect": true },
+		{ "op": "checked", "actual": "1", "expect": true },
+		{ "op": "checked", "actual": "on", "expect": true },
+		{ "op": "checked", "actual": "", "expect": false },
+		{ "op": "checked", "actual": "0", "expect": false },
+		{ "op": "checked", "actual": null, "expect": false },
+		{ "op": "unchecked", "actual": "", "expect": true },
+		{ "op": "is_true", "actual": true, "expect": true },
+		{ "op": "is_true", "actual": false, "expect": false },
+		{ "op": "is_false", "actual": false, "expect": true },
+		{ "op": "is_false", "actual": null, "expect": true },
+		{ "op": "eq", "actual": "500000", "value": 500000, "expect": true },
+		{ "op": "eq", "actual": 0.1, "value": 0.1, "expect": true },
+		{ "op": "eq", "actual": "abc", "value": 0, "expect": false },
+		{ "op": "neq", "actual": "abc", "value": 0, "expect": true },
+		{ "op": "gt", "actual": 600000, "value": 500000, "expect": true },
+		{ "op": "gt", "actual": 500000, "value": 500000, "expect": false },
+		{ "op": "gt", "actual": "", "value": 0, "expect": false },
+		{ "op": "gt", "actual": null, "value": -1, "expect": false },
+		{ "op": "gt", "actual": " 12.5 ", "value": 12, "expect": true },
+		{ "op": "gte", "actual": 500000, "value": 500000, "expect": true },
+		{ "op": "lt", "actual": "1e2", "value": 101, "expect": true },
+		{ "op": "lte", "actual": ".5", "value": 0.5, "expect": true },
+		{ "op": "between", "actual": 5, "value": [ 1, 5 ], "expect": true },
+		{ "op": "between", "actual": 5.01, "value": [ 1, 5 ], "expect": false },
+		{ "op": "between", "actual": "x", "value": [ 1, 5 ], "expect": false },
+		{ "op": "any_in", "actual": [ "12", "23" ], "value": [ "23", "40" ], "expect": true },
+		{ "op": "any_in", "actual": [ 12, 23 ], "value": [ "23" ], "expect": true },
+		{ "op": "any_in", "actual": [], "value": [ "23" ], "expect": false },
+		{ "op": "all_in", "actual": [ "1", "2", "3" ], "value": [ "1", "3" ], "expect": true },
+		{ "op": "all_in", "actual": [ "1" ], "value": [ "1", "3" ], "expect": false },
+		{ "op": "none_in", "actual": [ "1", "2" ], "value": [ "3" ], "expect": true },
+		{ "op": "none_in", "actual": [], "value": [ "3" ], "expect": true },
+		{ "op": "none_in", "actual": [ "3" ], "value": [ "3" ], "expect": false },
+		{ "op": "only_in", "actual": [ "1", "2" ], "value": [ "1", "2", "3" ], "expect": true },
+		{ "op": "only_in", "actual": [ "1", "4" ], "value": [ "1", "2" ], "expect": false },
+		{ "op": "only_in", "actual": [], "value": [ "1" ], "expect": false },
+		{ "op": "any_in", "actual": "flat_rate", "value": [ "FLAT_RATE" ], "expect": true },
+		{ "op": "unknown_op", "actual": "x", "value": "x", "expect": false }
+	],
+	"resolve": [
+		{
+			"name": "no rules keeps the field and its required state",
+			"kind": "field",
+			"original_required": true,
+			"rules": [],
+			"values": {},
+			"expect": { "active": true, "required": true, "applied": [], "conflict": null }
+		},
+		{
+			"name": "show rule matched",
+			"kind": "field",
+			"original_required": false,
+			"rules": [
+				{ "id": "s1", "priority": 10, "action": "show", "groups": [ [ { "source": "billing.country", "operator": "equals", "value": "DE" } ] ] }
+			],
+			"values": { "billing.country": "DE" },
+			"expect": { "active": true, "required": false, "applied": [ "s1" ], "conflict": null }
+		},
+		{
+			"name": "show rule not matched hides the field and drops required",
+			"kind": "field",
+			"original_required": true,
+			"rules": [
+				{ "id": "s1", "priority": 10, "action": "show", "groups": [ [ { "source": "billing.country", "operator": "equals", "value": "DE" } ] ] }
+			],
+			"values": { "billing.country": "MN" },
+			"expect": { "active": false, "required": false, "applied": [ "s1" ], "conflict": null }
+		},
+		{
+			"name": "groups are OR-ed, conditions AND-ed",
+			"kind": "field",
+			"original_required": false,
+			"rules": [
+				{ "id": "s1", "priority": 10, "action": "show", "groups": [
+					[ { "source": "billing.country", "operator": "equals", "value": "DE" }, { "source": "field:billing_company", "operator": "not_empty" } ],
+					[ { "source": "customer.role", "operator": "any_in", "value": [ "wholesale" ] } ]
+				] }
+			],
+			"values": { "billing.country": "DE", "field:billing_company": "", "customer.role": [ "customer", "wholesale" ] },
+			"expect": { "active": true, "required": false, "applied": [ "s1" ], "conflict": null }
+		},
+		{
+			"name": "require rule matched makes the field required",
+			"kind": "field",
+			"original_required": false,
+			"rules": [
+				{ "id": "r1", "priority": 10, "action": "require", "groups": [ [ { "source": "field:billing_company", "operator": "not_empty" } ] ] }
+			],
+			"values": { "field:billing_company": "Acme" },
+			"expect": { "active": true, "required": true, "applied": [ "r1" ], "conflict": null }
+		},
+		{
+			"name": "require rule not matched keeps the original optional state",
+			"kind": "field",
+			"original_required": false,
+			"rules": [
+				{ "id": "r1", "priority": 10, "action": "require", "groups": [ [ { "source": "field:billing_company", "operator": "not_empty" } ] ] }
+			],
+			"values": { "field:billing_company": "" },
+			"expect": { "active": true, "required": false, "applied": [], "conflict": null }
+		},
+		{
+			"name": "require rule not matched never removes original required",
+			"kind": "field",
+			"original_required": true,
+			"rules": [
+				{ "id": "r1", "priority": 10, "action": "require", "groups": [ [ { "source": "field:billing_company", "operator": "not_empty" } ] ] }
+			],
+			"values": {},
+			"expect": { "active": true, "required": true, "applied": [], "conflict": null }
+		},
+		{
+			"name": "equal priority: hide beats show",
+			"kind": "field",
+			"original_required": false,
+			"rules": [
+				{ "id": "s1", "priority": 10, "action": "show", "groups": [] },
+				{ "id": "h1", "priority": 10, "action": "hide", "groups": [] }
+			],
+			"values": {},
+			"expect": { "active": false, "required": false, "applied": [ "h1" ], "conflict": { "winner": "h1", "overridden": [ "s1" ] } }
+		},
+		{
+			"name": "lower priority number wins over hide",
+			"kind": "field",
+			"original_required": false,
+			"rules": [
+				{ "id": "h1", "priority": 20, "action": "hide", "groups": [] },
+				{ "id": "r1", "priority": 5, "action": "require", "groups": [] }
+			],
+			"values": {},
+			"expect": { "active": true, "required": true, "applied": [ "r1" ], "conflict": { "winner": "r1", "overridden": [ "h1" ] } }
+		},
+		{
+			"name": "disabled rules are ignored",
+			"kind": "field",
+			"original_required": false,
+			"rules": [
+				{ "id": "h1", "priority": 10, "action": "hide", "enabled": false, "groups": [] }
+			],
+			"values": {},
+			"expect": { "active": true, "required": false, "applied": [], "conflict": null }
+		},
+		{
+			"name": "payment disabled above total",
+			"kind": "toggle",
+			"rules": [
+				{ "id": "p1", "priority": 10, "action": "disable", "groups": [ [ { "source": "cart.total", "operator": "gt", "value": 500000 } ] ] }
+			],
+			"values": { "cart.total": 600000 },
+			"expect": { "active": false, "required": false, "applied": [ "p1" ], "conflict": null }
+		},
+		{
+			"name": "enable rule not matched disables the method",
+			"kind": "toggle",
+			"rules": [
+				{ "id": "e1", "priority": 10, "action": "enable", "groups": [ [ { "source": "billing.country", "operator": "in", "value": [ "MN" ] } ] ] }
+			],
+			"values": { "billing.country": "DE" },
+			"expect": { "active": false, "required": false, "applied": [ "e1" ], "conflict": null }
+		},
+		{
+			"name": "enable rule matched keeps the method",
+			"kind": "toggle",
+			"rules": [
+				{ "id": "e1", "priority": 10, "action": "enable", "groups": [ [ { "source": "billing.country", "operator": "in", "value": [ "MN" ] } ] ] }
+			],
+			"values": { "billing.country": "mn" },
+			"expect": { "active": true, "required": false, "applied": [ "e1" ], "conflict": null }
+		},
+		{
+			"name": "flag on when any rule matches",
+			"kind": "flag",
+			"action": "hide_tax_note",
+			"rules": [
+				{ "id": "t1", "priority": 10, "action": "hide_tax_note", "groups": [ [ { "source": "customer.is_guest", "operator": "is_true" } ] ] },
+				{ "id": "t2", "priority": 5, "action": "hide_tax_note", "groups": [ [ { "source": "billing.country", "operator": "equals", "value": "MN" } ] ] }
+			],
+			"values": { "customer.is_guest": true, "billing.country": "MN" },
+			"expect": { "active": true, "required": false, "applied": [ "t2", "t1" ], "conflict": null }
+		}
+	]
+}

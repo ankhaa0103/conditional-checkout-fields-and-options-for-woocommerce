@@ -1,0 +1,29 @@
+{
+	"name": "conditional-checkout-fields-and-options-for-woocommerce",
+	"version": "0.1.1",
+	"private": true,
+	"license": "GPL-2.0-or-later",
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start",
+		"lint:js": "wp-scripts lint-js assets/src tests/js",
+		"test:js": "wp-scripts test-unit-js --config tests/js/jest.config.js",
+		"test:e2e": "playwright test --config tests/e2e/playwright.config.js",
+		"plugin-zip": "wp-scripts plugin-zip"
+	},
+	"files": [
+		"conditional-checkout-fields-and-options-for-woocommerce.php",
+		"uninstall.php",
+		"readme.txt",
+		"src",
+		"build",
+		"assets/css",
+		"languages"
+	],
+	"devDependencies": {
+		"@playwright/test": "^1.56.1",
+		"@woocommerce/dependency-extraction-webpack-plugin": "^4.0.0",
+		"@wordpress/scripts": "^30.0.0",
+		"typescript": "^5.9.3"
+	}
+}

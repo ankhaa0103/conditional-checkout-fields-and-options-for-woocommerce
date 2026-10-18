@@ -1,0 +1,102 @@
+.ccfo-app {
+	max-width: 1100px;
+	margin-top: 16px;
+
+	.components-notice {
+		margin: 0 0 12px;
+	}
+}
+
+.ccfo-muted {
+	color: #646970;
+	font-size: 12px;
+}
+
+.ccfo-toolbar {
+	margin: 16px 0;
+}
+
+.ccfo-rules {
+	display: grid;
+	gap: 12px;
+}
+
+.ccfo-rule.is-disabled {
+	opacity: 0.65;
+}
+
+.ccfo-findings .components-notice {
+	margin: 0 0 6px;
+}
+
+.ccfo-editor {
+	display: grid;
+	gap: 16px;
+}
+
+.ccfo-group {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 12px;
+	display: grid;
+	gap: 8px;
+	background: #f6f7f7;
+}
+
+.ccfo-group__title {
+	font-weight: 600;
+}
+
+.ccfo-or {
+	font-weight: 600;
+	margin: 8px 0;
+	color: #2271b1;
+}
+
+.ccfo-condition {
+	gap: 8px;
+
+	&__source {
+		min-width: 240px;
+	}
+
+	&__operator {
+		min-width: 150px;
+	}
+
+	&__value {
+		min-width: 220px;
+	}
+}
+
+.ccfo-groups {
+	display: grid;
+	gap: 8px;
+	justify-items: start;
+
+	> div {
+		width: 100%;
+	}
+}
+
+.ccfo-messages {
+	display: grid;
+	gap: 16px;
+	max-width: 700px;
+	margin-top: 16px;
+	justify-items: start;
+
+	.components-base-control {
+		width: 100%;
+	}
+}
+
+.ccfo-savebar {
+	position: sticky;
+	bottom: 0;
+	background: #fff;
+	border-top: 1px solid #dcdcde;
+	padding: 12px 0;
+	margin-top: 24px;
+	z-index: 10;
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<ruleset name="CCFO">
+	<description>Coding standard for Conditional Checkout Fields and Options for WooCommerce.</description>
+
+	<file>conditional-checkout-fields-and-options-for-woocommerce.php</file>
+	<file>uninstall.php</file>
+	<file>src</file>
+	<file>tests/unit</file>
+	<file>tests/integration</file>
+
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
+	<config name="testVersion" value="8.1-"/>
+	<config name="minimum_wp_version" value="6.6"/>
+
+	<rule ref="PHPCompatibilityWP"/>
+	<rule ref="WordPress-Extra">
+		<!-- PSR-4 file names. -->
+		<exclude name="WordPress.Files.FileName"/>
+		<!-- Short array syntax is the modern PHP default. -->
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="conditional-checkout-fields-and-options-for-woocommerce"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="ccfo"/>
+				<element value="CCFO"/>
+			</property>
+		</properties>
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.Security.ValidatedSanitizedInput">
+		<properties>
+			<property name="customSanitizingFunctions" type="array">
+				<element value="wc_clean"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!-- Tests use PHPUnit naming. -->
+	<rule ref="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Security">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+</ruleset>

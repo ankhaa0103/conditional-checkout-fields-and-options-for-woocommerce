@@ -1,0 +1,12 @@
+/* Conditional Checkout Fields and Options for WooCommerce — checkout styles. */
+
+/* Field hidden by a rule. */
+.ccfo-hidden {
+	display: none !important;
+}
+
+/* "(includes … tax)" note hidden by a tax display rule: classic and Checkout Block. */
+body.ccfo-hide-tax-note .includes_tax,
+body.ccfo-hide-tax-note .wc-block-components-totals-footer-item-tax {
+	display: none !important;
+}
