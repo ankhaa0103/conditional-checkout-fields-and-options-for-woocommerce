@@ -16,62 +16,11 @@ test.afterAll( () => {
 	h.setRules( [] );
 } );
 
-async function openBlockCheckout( page ) {
-	await page.goto( '/ccfo-block-checkout/', {
-		waitUntil: 'domcontentloaded',
-	} );
-	await page.waitForSelector( '.wc-block-checkout__form', {
-		timeout: 30000,
-	} );
-	await page.waitForFunction(
-		() =>
-			! document.querySelector(
-				'.wc-block-components-loading-mask, .is-loading'
-			),
-		null,
-		{ timeout: 30000 }
-	);
-}
-
+const { openBlockCheckout, fillBlockAddress, placeBlockOrder } = h;
 const paymentOptions = ( page ) =>
 	page.locator( '.wc-block-checkout__payment-method' );
 const shippingOptions = ( page ) =>
 	page.locator( '.wc-block-checkout__shipping-option' );
-
-async function fillBlockAddress( page ) {
-	await page.fill( '#email', 'block-buyer@example.test' );
-	const values = {
-		first_name: 'Block',
-		last_name: 'Buyer',
-		address_1: 'Peace Avenue 2',
-		city: 'Ulaanbaatar',
-		postcode: '14200',
-		phone: '99112233',
-		state: 'UB',
-	};
-	for ( const [ key, value ] of Object.entries( values ) ) {
-		for ( const prefix of [ 'shipping', 'billing' ] ) {
-			const input = page.locator( `#${ prefix }-${ key }` );
-			if ( ( await input.count() ) && ( await input.isVisible() ) ) {
-				await input.fill( value );
-			}
-		}
-	}
-}
-
-async function placeBlockOrder( page ) {
-	await page
-		.locator( '.wc-block-components-checkout-place-order-button' )
-		.click();
-	await page.waitForFunction(
-		() =>
-			document.querySelector(
-				'.wc-block-components-notice-banner.is-error, .wc-block-store-notice.is-error'
-			) || /order-received/.test( window.location.href ),
-		null,
-		{ timeout: 45000 }
-	);
-}
 
 test(
 	'B1: payment rules apply to the Checkout Block',

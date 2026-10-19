@@ -189,6 +189,21 @@ final class SourcesTest extends IntegrationTestCase {
 		$this->assertSame( [ $flat, 'flat_rate' ], $this->value( 'shipping.method', ContextFactory::AJAX ) );
 		$pickup = $this->fx['rates']['pickup'];
 		$this->assertSame( [ $pickup, 'local_pickup' ], $this->value( 'shipping.method', ContextFactory::SUBMIT, [ 'shipping_method' => [ $pickup ] ] ) );
+
+		// Nothing chosen yet: the Checkout Block selects the first available method, and
+		// the Store API assumes the same (1.1); the classic page load keeps "nothing".
+		WC()->session->set( 'chosen_payment_method', '' );
+		$this->add( 'light' );
+		$this->mode( ContextFactory::STORE_API );
+		$first = (string) array_key_first( WC()->payment_gateways()->get_available_payment_gateways() );
+		$this->assertNotSame( '', $first );
+		$this->assertSame( $first, $this->value( 'payment.method', ContextFactory::STORE_API ) );
+		$this->assertSame( '', $this->value( 'payment.method', ContextFactory::RENDER ) );
+		$this->mode( ContextFactory::STORE_API );
+		$cart = json_decode( (string) wp_json_encode( rest_do_request( new \WP_REST_Request( 'GET', '/wc/store/v1/cart' ) )->get_data() ), true );
+		$this->assertSame( $first, $cart['extensions']['ccfo']['paymentMethod'] );
+		WC()->session->set( 'chosen_payment_method', 'bacs' );
+		$this->assertSame( 'bacs', $this->value( 'payment.method', ContextFactory::STORE_API ) );
 	}
 
 	public function test_customer_values(): void {

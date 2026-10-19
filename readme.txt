@@ -4,11 +4,11 @@ Tags: woocommerce, checkout, conditional fields, payment methods, shipping metho
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Show, hide or require existing checkout fields, and limit payment methods, shipping rates and tax handling with conditions.
+Show, hide or require checkout fields, limit payment and shipping methods, and set minimum or maximum order amounts with conditions.
 
 == Description ==
 
@@ -20,11 +20,14 @@ Conditional rules for the checkout you already have. The plugin does not add fie
 * **Payment methods** – offer a gateway only when conditions match, or remove it.
 * **Shipping methods** – the same for a whole shipping method or a single zone rate. Cached shipping rates can never bypass a rule.
 * **Taxes** – hide the "(includes … tax)" note, make the order VAT exempt, or use another existing tax class. Totals are always calculated by WooCommerce.
+* **Order rules** – minimum and maximum order amounts and more. Hold back "Proceed to checkout" (cart, mini cart, Cart Block) or "Place order" (checkout, Checkout Block) with your own message, for example "Add {remaining} more to order". The order is refused on the server too.
 
 = Conditions =
 
 * The value of another checkout field (text, number, checkbox, select)
-* Cart subtotal, order total, number of lines, quantity and weight
+* Cart subtotal (excluding or including tax), total after discounts, discount, shipping cost, tax and order total
+* Subtotal of a product category, most expensive and cheapest product price, coupons applied
+* Number of lines, quantity and weight
 * Products, product categories (sub-categories count for their parents), tags and shipping classes in the cart – any, all, none or only
 * Chosen payment method and chosen shipping method
 * Guest or logged-in customer, customer role
@@ -91,6 +94,10 @@ The customer sees your message (WooCommerce → Checkout Rules → Settings), no
 
 Yes. Rules read what the customer enters during checkout. For payment, shipping and tax rules that depend on a field, the checkout refreshes as soon as the customer leaves the field, or after the "Live update delay" (default 5 seconds) while they are still typing.
 
+= Can I set a minimum or maximum order amount? =
+
+Yes. Add a rule for *Order* with the action "Block checkout" (the cart button is held back too) or "Block placing the order" (only the checkout), and a condition such as "Cart subtotal < 50000". The message can show what is missing: "Add {remaining} more to order (minimum {min})." Combine conditions freely, for example a maximum only for cash on delivery, or a minimum only for one category or for wholesale customers.
+
 = Does hiding the tax note change the total? =
 
 No. Tax display rules only change what is shown on the checkout page. Cart and order taxes, emails and invoices keep the full tax details.
@@ -111,12 +118,20 @@ Yes, uninstalling removes the rules and settings. The record of applied rules on
 
 1. The rules list with live checks: conflicting rules are explained on both rules.
 2. The rule editor: a payment method offered only when the conditions match, with AND and OR groups.
-3. Settings: the messages customers see when every payment or shipping method is removed, and the live update delay.
+3. Settings: the messages customers see when every payment or shipping method is removed or an order rule has no message of its own, and the live update delay.
 4. Classic checkout: the VAT number becomes required as soon as a company name is entered.
 5. Classic checkout: bank transfer is offered once the customer enters a company name.
 6. The order screen lists the rules that applied at checkout.
+7. Cart: "Proceed to checkout" is held back until the minimum order amount is reached.
 
 == Changelog ==
+
+= 1.1.0 =
+* New: order rules – block checkout or block placing the order when conditions match, with your own message and the placeholders {min}, {max}, {remaining}, {excess} and {current}. Classic cart, mini cart and checkout, Cart Block and Checkout Block; the order is also refused on the server.
+* New conditions: cart subtotal including tax, total after discounts, discount, shipping cost, tax, subtotal of a product category, most expensive and cheapest product price, coupons applied.
+* New: default order rule message in the Settings tab.
+* Admin checks: rules that block every order, condition groups that can never match, placeholders without a matching condition, deleted categories.
+* Fix (Checkout Block): with tax rules that read the payment method, address input typed just before choosing a payment method could be lost.
 
 = 1.0.0 =
 * First public release.
@@ -127,6 +142,9 @@ Yes, uninstalling removes the rules and settings. The record of applied rules on
 * HPOS and Cart and Checkout Blocks compatible.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Minimum and maximum order amounts, more amount conditions and category subtotals.
 
 = 1.0.0 =
 First public release.

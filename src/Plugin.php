@@ -56,6 +56,13 @@ final class Plugin {
 	public readonly Classic\Fields $fields;
 
 	/**
+	 * Order rules (block checkout / block the order).
+	 *
+	 * @var Order\Restrictions
+	 */
+	public readonly Order\Restrictions $restrictions;
+
+	/**
 	 * Constructor.
 	 */
 	private function __construct() {
@@ -63,6 +70,8 @@ final class Plugin {
 		$this->contexts = new ContextFactory();
 		$this->log      = new RequestLog();
 		$this->fields   = new Classic\Fields( $this );
+
+		$this->restrictions = new Order\Restrictions( $this );
 	}
 
 	/**
@@ -83,6 +92,7 @@ final class Plugin {
 		( new Classic\Payments( $this ) )->register();
 		( new Classic\Shipping( $this ) )->register();
 		( new Classic\Validation( $this ) )->register();
+		$this->restrictions->register();
 		( new Classic\Assets( $this ) )->register();
 		( new Orders( $this ) )->register();
 		( new Tax\TaxRules( $this ) )->register();

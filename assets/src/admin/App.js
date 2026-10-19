@@ -38,7 +38,10 @@ function newRule() {
 	};
 }
 
-function targetLabel( rule, catalog ) {
+function targetLabel( rule, catalog, definitions ) {
+	if ( definitions?.fixedKeys?.[ rule.target.type ] ) {
+		return TARGET_LABELS[ rule.target.type ];
+	}
 	const option = targetKeyOptions( rule.target.type, catalog ).find(
 		( o ) => o.value === rule.target.key
 	);
@@ -97,7 +100,7 @@ function RuleCard( {
 								) }
 						</strong>
 						<div className="ccfo-muted">
-							{ targetLabel( rule, catalog ) } ·{ ' ' }
+							{ targetLabel( rule, catalog, definitions ) } ·{ ' ' }
 							{ ACTION_LABELS[ rule.action ] } ·{ ' ' }
 							{ sprintf(
 								/* translators: %d: number of condition groups */
@@ -395,7 +398,7 @@ function MessagesTab() {
 		<div className="ccfo-messages">
 			<p>
 				{ __(
-					'Shown to customers when your rules remove every payment or every shipping method.',
+					'Shown to customers when your rules remove every payment or every shipping method, or block the order.',
 					'conditional-checkout-fields-and-options-for-woocommerce'
 				) }
 			</p>
@@ -419,6 +422,21 @@ function MessagesTab() {
 				value={ settings.shipping_blocked_message }
 				onChange={ ( v ) =>
 					setSettings( { ...settings, shipping_blocked_message: v } )
+				}
+			/>
+			<TextareaControl
+				__nextHasNoMarginBottom
+				label={ __(
+					'Default order rule message',
+					'conditional-checkout-fields-and-options-for-woocommerce'
+				) }
+				help={ __(
+					'Shown when an order rule (block checkout or block the order) has no message of its own. The placeholders {min}, {max}, {remaining}, {excess} and {current} work here too.',
+					'conditional-checkout-fields-and-options-for-woocommerce'
+				) }
+				value={ settings.order_blocked_message }
+				onChange={ ( v ) =>
+					setSettings( { ...settings, order_blocked_message: v } )
 				}
 			/>
 			<TextControl

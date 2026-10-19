@@ -10,3 +10,21 @@ body.ccfo-hide-tax-note .includes_tax,
 body.ccfo-hide-tax-note .wc-block-components-totals-footer-item-tax {
 	display: none !important;
 }
+
+/* Order rules (block checkout / block the order): buttons held back while a rule blocks. */
+.ccfo-checkout-disabled,
+#place_order[data-ccfo-blocked],
+body.ccfo-order-blocked .wc-block-cart__submit-button,
+body.ccfo-order-blocked .wc-block-components-checkout-place-order-button {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.ccfo-checkout-disabled {
+	width: 100%;
+}
+
+.ccfo-order-blocked--mini {
+	margin-top: 0.5em;
+	font-size: 0.9em;
+}

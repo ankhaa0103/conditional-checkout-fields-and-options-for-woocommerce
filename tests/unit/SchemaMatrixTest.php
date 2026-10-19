@@ -18,7 +18,19 @@ use PHPUnit\Framework\TestCase;
  */
 final class SchemaMatrixTest extends TestCase {
 
-	private const TARGETS = [ 'field', 'payment', 'shipping', 'tax_display', 'tax_calc' ];
+	private const TARGETS = [ 'field', 'payment', 'shipping', 'tax_display', 'tax_calc', 'order' ];
+
+	/**
+	 * SPEC §4 column of each target ("tax" covers tax_display and tax_calc).
+	 */
+	private const COLUMN = [
+		'field'       => 0,
+		'payment'     => 1,
+		'shipping'    => 2,
+		'tax_display' => 3,
+		'tax_calc'    => 3,
+		'order'       => 4,
+	];
 
 	/**
 	 * SPEC §2/§3: actions per target.
@@ -29,34 +41,44 @@ final class SchemaMatrixTest extends TestCase {
 		'shipping'    => [ 'enable', 'disable' ],
 		'tax_display' => [ 'hide_tax_note' ],
 		'tax_calc'    => [ 'set_vat_exempt', 'set_tax_class' ],
+		'order'       => [ 'block_checkout', 'block_order' ],
 	];
 
 	/**
-	 * SPEC §4: source → [field, payment, shipping, tax]. "tax" covers tax_display and tax_calc.
+	 * SPEC §4: source → [field, payment, shipping, tax, order]. "tax" covers tax_display and tax_calc.
 	 */
 	private const SPEC_SOURCES = [
-		'field:billing_company' => [ 1, 1, 1, 1 ],
-		'cart.subtotal'         => [ 1, 1, 1, 1 ],
-		'cart.total'            => [ 1, 1, 0, 0 ],
-		'cart.item_count'       => [ 1, 1, 1, 1 ],
-		'cart.qty'              => [ 1, 1, 1, 1 ],
-		'cart.weight'           => [ 1, 1, 1, 1 ],
-		'cart.products'         => [ 1, 1, 1, 1 ],
-		'cart.categories'       => [ 1, 1, 1, 1 ],
-		'cart.tags'             => [ 1, 1, 1, 1 ],
-		'cart.shipping_classes' => [ 1, 1, 1, 1 ],
-		'payment.method'        => [ 1, 0, 0, 1 ],
-		'shipping.method'       => [ 1, 1, 0, 1 ],
-		'customer.is_guest'     => [ 1, 1, 1, 1 ],
-		'customer.role'         => [ 1, 1, 1, 1 ],
-		'billing.country'       => [ 1, 1, 1, 1 ],
-		'billing.state'         => [ 1, 1, 1, 1 ],
-		'billing.postcode'      => [ 1, 1, 1, 1 ],
-		'shipping.country'      => [ 1, 1, 1, 1 ],
-		'shipping.state'        => [ 1, 1, 1, 1 ],
-		'shipping.postcode'     => [ 1, 1, 1, 1 ],
-		'tax.vat_exempt'        => [ 1, 1, 0, 0 ],
-		'tax.has_tax'           => [ 1, 1, 0, 0 ],
+		'field:billing_company'     => [ 1, 1, 1, 1, 1 ],
+		'cart.subtotal'             => [ 1, 1, 1, 1, 1 ],
+		'cart.subtotal_incl_tax'    => [ 1, 1, 1, 0, 1 ],
+		'cart.contents_total'       => [ 1, 1, 1, 0, 1 ],
+		'cart.discount_total'       => [ 1, 1, 1, 0, 1 ],
+		'cart.shipping_total'       => [ 1, 1, 0, 0, 1 ],
+		'cart.tax_total'            => [ 1, 1, 0, 0, 1 ],
+		'cart.total'                => [ 1, 1, 0, 0, 1 ],
+		'cart.max_item_price'       => [ 1, 1, 1, 1, 1 ],
+		'cart.min_item_price'       => [ 1, 1, 1, 1, 1 ],
+		'cart.category_subtotal:12' => [ 1, 1, 1, 1, 1 ],
+		'cart.coupons'              => [ 1, 1, 1, 1, 1 ],
+		'cart.item_count'           => [ 1, 1, 1, 1, 1 ],
+		'cart.qty'                  => [ 1, 1, 1, 1, 1 ],
+		'cart.weight'               => [ 1, 1, 1, 1, 1 ],
+		'cart.products'             => [ 1, 1, 1, 1, 1 ],
+		'cart.categories'           => [ 1, 1, 1, 1, 1 ],
+		'cart.tags'                 => [ 1, 1, 1, 1, 1 ],
+		'cart.shipping_classes'     => [ 1, 1, 1, 1, 1 ],
+		'payment.method'            => [ 1, 0, 0, 1, 1 ],
+		'shipping.method'           => [ 1, 1, 0, 1, 1 ],
+		'customer.is_guest'         => [ 1, 1, 1, 1, 1 ],
+		'customer.role'             => [ 1, 1, 1, 1, 1 ],
+		'billing.country'           => [ 1, 1, 1, 1, 1 ],
+		'billing.state'             => [ 1, 1, 1, 1, 1 ],
+		'billing.postcode'          => [ 1, 1, 1, 1, 1 ],
+		'shipping.country'          => [ 1, 1, 1, 1, 1 ],
+		'shipping.state'            => [ 1, 1, 1, 1, 1 ],
+		'shipping.postcode'         => [ 1, 1, 1, 1, 1 ],
+		'tax.vat_exempt'            => [ 1, 1, 0, 0, 1 ],
+		'tax.has_tax'               => [ 1, 1, 0, 0, 1 ],
 	];
 
 	/**
@@ -75,29 +97,43 @@ final class SchemaMatrixTest extends TestCase {
 	 * SPEC §4: value kind of each source.
 	 */
 	private const SPEC_KINDS = [
-		'field:billing_company' => 'field',
-		'cart.subtotal'         => 'number',
-		'cart.total'            => 'number',
-		'cart.item_count'       => 'number',
-		'cart.qty'              => 'number',
-		'cart.weight'           => 'number',
-		'cart.products'         => 'list',
-		'cart.categories'       => 'list',
-		'cart.tags'             => 'list',
-		'cart.shipping_classes' => 'list',
-		'payment.method'        => 'string',
-		'shipping.method'       => 'list',
-		'customer.is_guest'     => 'bool',
-		'customer.role'         => 'list',
-		'billing.country'       => 'string',
-		'billing.state'         => 'string',
-		'billing.postcode'      => 'string',
-		'shipping.country'      => 'string',
-		'shipping.state'        => 'string',
-		'shipping.postcode'     => 'string',
-		'tax.vat_exempt'        => 'bool',
-		'tax.has_tax'           => 'bool',
+		'field:billing_company'     => 'field',
+		'cart.subtotal'             => 'number',
+		'cart.subtotal_incl_tax'    => 'number',
+		'cart.contents_total'       => 'number',
+		'cart.discount_total'       => 'number',
+		'cart.shipping_total'       => 'number',
+		'cart.tax_total'            => 'number',
+		'cart.total'                => 'number',
+		'cart.max_item_price'       => 'number',
+		'cart.min_item_price'       => 'number',
+		'cart.category_subtotal:12' => 'number',
+		'cart.coupons'              => 'list',
+		'cart.item_count'           => 'number',
+		'cart.qty'                  => 'number',
+		'cart.weight'               => 'number',
+		'cart.products'             => 'list',
+		'cart.categories'           => 'list',
+		'cart.tags'                 => 'list',
+		'cart.shipping_classes'     => 'list',
+		'payment.method'            => 'string',
+		'shipping.method'           => 'list',
+		'customer.is_guest'         => 'bool',
+		'customer.role'             => 'list',
+		'billing.country'           => 'string',
+		'billing.state'             => 'string',
+		'billing.postcode'          => 'string',
+		'shipping.country'          => 'string',
+		'shipping.state'            => 'string',
+		'shipping.postcode'         => 'string',
+		'tax.vat_exempt'            => 'bool',
+		'tax.has_tax'               => 'bool',
 	];
+
+	/**
+	 * SPEC §4: sources whose values are money (formatted as prices in messages).
+	 */
+	private const SPEC_MONEY = [ 'cart.subtotal', 'cart.subtotal_incl_tax', 'cart.contents_total', 'cart.discount_total', 'cart.shipping_total', 'cart.tax_total', 'cart.total', 'cart.max_item_price', 'cart.min_item_price', 'cart.category_subtotal:12' ];
 
 	private const ALL_OPERATORS = [ 'equals', 'not_equals', 'contains', 'not_contains', 'in', 'not_in', 'empty', 'not_empty', 'checked', 'unchecked', 'is_true', 'is_false', 'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'any_in', 'all_in', 'none_in', 'only_in' ];
 
@@ -159,14 +195,10 @@ final class SchemaMatrixTest extends TestCase {
 			$definition = Definitions::source_definition( $source );
 			$this->assertNotNull( $definition, $source );
 			$expected = [];
-			foreach ( [ 'field', 'payment', 'shipping' ] as $i => $target ) {
-				if ( $allowed[ $i ] ) {
+			foreach ( self::COLUMN as $target => $column ) {
+				if ( $allowed[ $column ] ) {
 					$expected[] = $target;
 				}
-			}
-			if ( $allowed[3] ) {
-				$expected[] = 'tax_display';
-				$expected[] = 'tax_calc';
 			}
 			$actual = $definition['targets'];
 			sort( $expected );
@@ -176,6 +208,11 @@ final class SchemaMatrixTest extends TestCase {
 		}
 		// No source in the code that the spec does not know.
 		$this->assertSame( [], array_diff( array_keys( $sources ), array_keys( self::SPEC_SOURCES ) ) );
+
+		foreach ( array_keys( self::SPEC_SOURCES ) as $source ) {
+			$this->assertSame( in_array( $source, self::SPEC_MONEY, true ), Definitions::is_money_source( $source ), "money: $source" );
+		}
+		$this->assertSame( [ '{min}', '{max}', '{remaining}', '{excess}', '{current}' ], Definitions::MESSAGE_PLACEHOLDERS );
 
 		foreach ( self::SPEC_OPERATORS as $kind => $operators ) {
 			$this->assertEqualsCanonicalizing( $operators, Definitions::OPERATORS[ $kind ], "operators of $kind" );
@@ -187,9 +224,9 @@ final class SchemaMatrixTest extends TestCase {
 		$failures = [];
 		$count    = 0;
 
-		foreach ( self::TARGETS as $t => $target ) {
+		foreach ( self::TARGETS as $target ) {
 			foreach ( self::SPEC_SOURCES as $source => $allowed ) {
-				$source_allowed = 1 === $allowed[ min( $t, 3 ) ];
+				$source_allowed = 1 === $allowed[ self::COLUMN[ $target ] ];
 				foreach ( self::ALL_OPERATORS as $operator ) {
 					++$count;
 					[ $has_value, $value ] = self::valid_value( $operator, $source );
@@ -212,7 +249,7 @@ final class SchemaMatrixTest extends TestCase {
 			}
 		}
 
-		$this->assertSame( 5 * 22 * 23, $count );
+		$this->assertSame( 6 * 31 * 23, $count );
 		$this->assertSame( [], $failures, implode( "\n", array_slice( $failures, 0, 30 ) ) );
 	}
 
@@ -325,6 +362,7 @@ final class SchemaMatrixTest extends TestCase {
 		foreach ( [
 			'tax_display' => 'checkout',
 			'tax_calc'    => 'cart',
+			'order'       => 'order',
 		] as $target => $fixed ) {
 			$rule                  = self::rule(
 				$target,

@@ -9,6 +9,7 @@ import {
 	FlexBlock,
 	FlexItem,
 	SelectControl,
+	TextareaControl,
 	TextControl,
 	ToggleControl,
 } from '@wordpress/components';
@@ -22,10 +23,19 @@ import {
 import { fieldOptions, targetKeyOptions } from './options';
 import ValueInput from './ValueInput';
 
-const sourceType = ( source, definitions ) =>
-	source.startsWith( 'field:' )
-		? definitions.fieldSource
-		: definitions.sources[ source ];
+const CATEGORY_PREFIX = 'cart.category_subtotal:';
+
+const sourceType = ( source, definitions ) => {
+	if ( source.startsWith( 'field:' ) ) {
+		return definitions.fieldSource;
+	}
+	if ( source.startsWith( CATEGORY_PREFIX ) ) {
+		return definitions.categorySource;
+	}
+	return definitions.sources[ source ];
+};
+
+const ORDER_ACTIONS = [ 'block_checkout', 'block_order' ];
 
 /**
  * Sources allowed for the target, as grouped select options.
@@ -50,6 +60,21 @@ function sourceOptions( rule, definitions, catalog ) {
 			options.push( {
 				value: id,
 				label: `${ group.label }: ${ SOURCE_LABELS[ id ] || id }`,
+			} )
+		);
+	}
+
+	if ( definitions.categorySource?.targets.includes( rule.target.type ) ) {
+		( catalog.categories || [] ).forEach( ( c ) =>
+			options.push( {
+				value: CATEGORY_PREFIX + c.id,
+				label: sprintf(
+					/* translators: %s: product category name */ __(
+						'Cart: Subtotal of category "%s" (before discounts, excl. tax)',
+						'conditional-checkout-fields-and-options-for-woocommerce'
+					),
+					c.label
+				),
 			} )
 		);
 	}
@@ -320,15 +345,16 @@ export default function RuleEditor( { rule, definitions, catalog, onChange } ) {
 							value: a,
 							label: ACTION_LABELS[ a ] || a,
 						} ) ) }
-						onChange={ ( action ) =>
-							set( {
-								action,
-								args:
-									action === 'set_tax_class'
-										? { tax_class: '' }
-										: {},
-							} )
-						}
+						onChange={ ( action ) => {
+							let args = {};
+							if ( action === 'set_tax_class' ) {
+								// eslint-disable-next-line camelcase
+								args = { tax_class: '' };
+							} else if ( ORDER_ACTIONS.includes( action ) ) {
+								args = { message: rule.args?.message ?? '' };
+							}
+							set( { action, args } );
+						} }
 					/>
 				</FlexItem>
 				{ rule.action === 'set_tax_class' && (
@@ -353,6 +379,28 @@ export default function RuleEditor( { rule, definitions, catalog, onChange } ) {
 					</FlexItem>
 				) }
 			</Flex>
+
+			{ ORDER_ACTIONS.includes( rule.action ) && (
+				<TextareaControl
+					__nextHasNoMarginBottom
+					className="ccfo-editor__message"
+					label={ __(
+						'Message shown to customers',
+						'conditional-checkout-fields-and-options-for-woocommerce'
+					) }
+					help={ sprintf(
+						/* translators: %s: list of placeholders */ __(
+							'Leave empty to use the default message from the Settings tab. Placeholders: %s. {min} and {remaining} come from a "less than" condition (e.g. order total < 50000), {max} and {excess} from a "greater than" condition, {current} is the current value.',
+							'conditional-checkout-fields-and-options-for-woocommerce'
+						),
+						( definitions.placeholders || [] ).join( ' ' )
+					) }
+					value={ rule.args?.message ?? '' }
+					onChange={ ( message ) =>
+						set( { args: { ...rule.args, message } } )
+					}
+				/>
+			) }
 
 			<div className="ccfo-groups">
 				{ rule.groups.length === 0 && (

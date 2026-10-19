@@ -176,6 +176,62 @@ final class AdminApiTest extends IntegrationTestCase {
 		$this->assertContains( 'conflict', array_column( $result['findings'], 'code' ) );
 	}
 
+	public function test_order_rules_through_the_api(): void {
+		$this->admin();
+		$order = $this->rule( 'min', 'order', 'order', 'block_checkout' );
+
+		$order['args']    = [ 'message' => '<b>Add</b> {remaining} {nope}' ];
+		$order['groups']  = [
+			[
+				[
+					'source'   => 'cart.category_subtotal:999999999',
+					'operator' => 'lt',
+					'value'    => 1000,
+				],
+				[
+					'source'   => 'cart.total',
+					'operator' => 'gt',
+					'value'    => 50,
+				],
+				[
+					'source'   => 'cart.total',
+					'operator' => 'lt',
+					'value'    => 10,
+				],
+			],
+		];
+		$always           = $this->rule( 'always', 'order', 'order', 'block_order' );
+		$always['groups'] = [];
+
+		$result = self::data( $this->call( 'POST', '/lint', [ 'rules' => [ $order, $always ] ] ) );
+		$this->assertSame( [], $result['errors'] );
+		$codes = [];
+		foreach ( $result['findings'] as $finding ) {
+			$codes[ $finding['rule'] ][] = $finding['code'];
+		}
+		$this->assertEqualsCanonicalizing( [ 'missing_category', 'never_matches', 'unknown_placeholder' ], $codes['min'] );
+		$this->assertSame( [ 'always_blocks' ], $codes['always'] );
+
+		// Saved with the cleaned message; the definitions describe the new vocabulary.
+		$saved = self::data(
+			$this->call(
+				'POST',
+				'/rules',
+				[
+					'rules'    => [ $order ],
+					'revision' => self::data( $this->call( 'GET', '/rules' ) )['revision'],
+				]
+			)
+		);
+		$this->assertSame( 'Add {remaining} {nope}', $saved['rules'][0]['args']['message'] );
+		$definitions = self::data( $this->call( 'GET', '/rules' ) )['definitions'];
+		$this->assertSame( [ 'block_checkout', 'block_order' ], $definitions['actions']['order'] );
+		$this->assertSame( 'order', $definitions['fixedKeys']['order'] );
+		$this->assertSame( 'number', $definitions['categorySource']['type'] );
+		$this->assertContains( 'cart.total', $definitions['moneySources'] );
+		$this->assertContains( '{remaining}', $definitions['placeholders'] );
+	}
+
 	public function test_catalog_lists_store_objects(): void {
 		$this->admin();
 		$catalog = self::data( $this->call( 'GET', '/catalog' ) );
@@ -222,6 +278,9 @@ final class AdminApiTest extends IntegrationTestCase {
 		$defaults = self::data( $this->call( 'GET', '/settings' ) );
 		$this->assertSame( '5', $defaults['live_update_delay'] );
 		$this->assertNotSame( '', $defaults['payment_blocked_message'] );
+		$this->assertNotSame( '', $defaults['order_blocked_message'] );
+		$this->assertSame( 'Minimum {min}.', Settings::save( [ 'order_blocked_message' => '<em>Minimum</em> {min}.' ] )['order_blocked_message'] );
+		$this->assertSame( $defaults['order_blocked_message'], Settings::save( [ 'order_blocked_message' => '' ] )['order_blocked_message'] );
 
 		$saved = self::data(
 			$this->call(

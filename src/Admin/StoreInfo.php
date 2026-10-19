@@ -253,6 +253,7 @@ final class StoreInfo {
 				'block_fields' => self::block_fields(),
 				'gateways'     => $gateways,
 				'shipping'     => $shipping,
+				'categories'   => array_map( static fn ( array $t ): string => $t['id'], self::terms( 'product_cat' ) ),
 			]
 		);
 	}

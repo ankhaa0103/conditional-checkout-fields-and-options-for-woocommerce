@@ -60,6 +60,9 @@ E2E хурдны дүрэм (`tests/e2e/helpers.js`):
 - `tests/unit/MatrixTest.php` + `tests/js/matrix.test.js`: `tests/fixtures/matrix.json` (operator × утга, action-уудын хослол, AND/OR хэлбэр) дээр PHP = JS = SPEC oracle. Зан төлөвийг зориуд өөрчилбөл `UPDATE_MATRIX=1 npm run test:js`-ээр дахин үүсгэнэ.
 - `tests/unit/SchemaMatrixTest.php`: SPEC §3–§5-ийн хүснэгтүүдийг кодоос биш SPEC-ээс хуулж, бүх target × source × operator хослолыг шалгана. SPEC өөрчлөгдвөл энэ хүснэгтийг эхэлж засна.
 - `tests/integration/`: `SourcesTest` (source бүр горим бүрт), `HookMatrixTest` (target × action WooCommerce hook-оор, серверийн татгалзал), `AdminApiTest` (REST, catalog, тохиргоо, header, HPOS), `SpecExtrasTest` (татвар, priority, uninstall).
+- `tests/unit/OrderRulesTest.php`, `MessagesTest.php`: order дүрмийн schema, linter (зөрчилтэй group-ийг brute-force-той тулгана), placeholder.
+- `tests/integration/AmountSourcesTest.php` (дүнгийн source-уудыг `WC_Cart`-тай горим бүрт), `OrderRestrictionsTest.php` (action × тохирох эсэх × cart/mini cart/checkout/submit/Store API, бодит Store API checkout).
+- `tests/js/order-guard.test.js`: Cart/Checkout Block-ийн order guard.
 - `tests/js/runtime.test.js`: classic runtime-ийг jsdom + jQuery 3.7.1 дээр шалгана. Tooling-ийн тэмдэглэл: TypeScript 5-ийг dev dependency болгон тогтоосон (ESLint-ийн TS plugin TS 6-тай нийцдэггүй). Windows дээр Python-оор файл бичихдээ `newline=''` ашиглана, эс бөгөөс CRLF болж PHPCS алдаа өгнө.
 
 ## Кодын стандарт

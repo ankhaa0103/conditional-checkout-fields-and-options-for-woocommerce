@@ -27,6 +27,8 @@ final class Settings {
 		return [
 			'payment_blocked_message'  => __( 'No payment method is available for your order with the details you entered. Please check your details or contact us.', 'conditional-checkout-fields-and-options-for-woocommerce' ),
 			'shipping_blocked_message' => __( 'No shipping method is available for your order with the details you entered. Please check your address and cart, or contact us.', 'conditional-checkout-fields-and-options-for-woocommerce' ),
+			// Shown by order rules (block checkout / block the order) that have no message of their own.
+			'order_blocked_message'    => __( 'Your order cannot be placed with the current cart. Please review your cart or contact us.', 'conditional-checkout-fields-and-options-for-woocommerce' ),
 			// Seconds the classic checkout waits while the customer is typing before it
 			// refreshes payment/shipping methods for rules that read form values.
 			'live_update_delay'        => '5',

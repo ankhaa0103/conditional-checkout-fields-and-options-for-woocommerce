@@ -1,6 +1,6 @@
 # COMPATIBILITY — Classic checkout vs Checkout Block
 
-Хувилбар: 0.1.0 (2026-10-17). Туршсан орчин: WP 7.1.3, WC 11.2.1, PHP 8.4, Woodmart theme.
+Хувилбар: 1.1.0 (2026-10-20; анх 0.1.0 — 2026-10-17). Туршсан орчин: WP 7.1.3, WC 11.2.1, PHP 8.4, Woodmart theme.
 
 ## Дэмжлэгийн хүснэгт
 
@@ -15,7 +15,10 @@
 | Бүх аргыг хассан үеийн мессеж | ✅ Тохируулсан текст | ⚠️ Block-ийн өөрийн мессеж | Захиалга аль ч тохиолдолд үүсэхгүй. |
 | `hide_tax_note` | ✅ | ✅ (CSS, `extensions.ccfo`) | Зөвхөн "татвартай үнэ" горимд утга учиртай. |
 | `set_vat_exempt`, `set_tax_class` | ✅ | ✅ | WooCommerce-ийн тооцооллоор. Totals-ийг сервер тооцно. |
-| `payment.method` нөхцөл (field/tax) | ✅ | ✅ (`extensionCartUpdate`-ээр сервер рүү) | |
+| `payment.method` нөхцөл (field/tax) | ✅ | ✅ (`extensionCartUpdate`-ээр сервер рүү) | 1.1: юу ч сонгоогүй үед сервер эхний аргыг ашигладаг тул ачаалах үед илгээхгүй; солих үед хаяг бичихээ зогсоосноос хойш 3.5 сек хүлээж илгээнэ. Өмнө нь cart хариу WooCommerce илгээгээгүй хаягийг дарж бичдэг байсан. |
+| Order `block_checkout` (1.1) | ✅ Cart-ийн товч, mini cart, checkout-ийн "Place order" идэвхгүй + мессеж; сервер татгалзана | ✅ Cart Block-ийн товч хориглогдож notice гарна; Checkout Block-ийн "Place order" хориглогдоно; Store API татгалзана | Mini-Cart **block**-ийн товч удирдагдахгүй. |
+| Order `block_order` (1.1) | ✅ "Place order" идэвхгүй + мессеж; сервер татгалзана | ✅ Notice + "Place order" хориглогдоно; Store API `ccfo_order_blocked` | `payment.method` нөхцөлтэй бол Block-д синкгүйгээр шууд шинэчлэгдэнэ (`orderBlockedByMethod`). |
+| Шинэ дүнгийн нөхцөл (1.1) | ✅ | ✅ | Ижил `ContextFactory`. |
 | Order meta `_ccfo_applied_rules` | ✅ | ✅ | HPOS-safe CRUD. |
 
 ## WooCommerce хувилбар

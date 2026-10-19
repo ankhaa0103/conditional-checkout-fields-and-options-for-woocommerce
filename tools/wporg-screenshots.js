@@ -160,6 +160,28 @@ async function openRules( page ) {
 			.locator( '#order_data' )
 			.screenshot( { path: path.join( OUT, 'screenshot-6.png' ) } );
 
+		// 7. Cart below the minimum order amount.
+		const minimum = h.rule(
+			'minimum_order',
+			'order',
+			'order',
+			'block_checkout',
+			[ [ { source: 'cart.subtotal', operator: 'lt', value: 400000 } ] ],
+			{
+				args: {
+					message: 'Add {remaining} more to order (minimum {min}).',
+				},
+			}
+		);
+		h.setRules( [ minimum ] );
+		await h.fillCart( shop, fx, { light: 1 } );
+		await shop.goto( '/cart/', { waitUntil: 'domcontentloaded' } );
+		await shop.locator( '.cart_totals .ccfo-order-blocked' ).waitFor();
+		await shop.waitForTimeout( 800 );
+		await shop
+			.locator( '.cart_totals' )
+			.screenshot( { path: path.join( OUT, 'screenshot-7.png' ) } );
+
 		// eslint-disable-next-line no-console
 		console.log( 'Screenshots written to', OUT );
 	} finally {

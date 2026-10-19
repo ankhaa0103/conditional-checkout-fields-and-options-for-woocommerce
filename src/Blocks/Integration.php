@@ -16,9 +16,11 @@ use CCFO\Plugin;
 use CCFO\Rules\Definitions;
 
 /**
- * Loads build/blocks.js in the Checkout Block. The script toggles the tax note
- * class from `extensions.ccfo` and, when rules read the payment method, sends the
- * selected method to the server with `extensionCartUpdate`.
+ * Loads build/blocks.js in the Cart and Checkout Blocks. The script toggles the
+ * tax note class from `extensions.ccfo`, shows the messages of order rules and
+ * holds back the checkout / place order buttons while they block (SPEC §13), and,
+ * when rules read the payment method, sends the selected method to the server
+ * with `extensionCartUpdate`.
  */
 final class Integration implements IntegrationInterface {
 
@@ -33,14 +35,13 @@ final class Integration implements IntegrationInterface {
 	 * Hook into the Checkout Block registry.
 	 */
 	public function register(): void {
-		add_action(
-			'woocommerce_blocks_checkout_block_registration',
-			function ( $registry ): void {
-				if ( is_object( $registry ) && method_exists( $registry, 'register' ) ) {
-					$registry->register( $this );
-				}
+		$register = function ( $registry ): void {
+			if ( is_object( $registry ) && method_exists( $registry, 'register' ) && ( ! method_exists( $registry, 'is_registered' ) || ! $registry->is_registered( $this->get_name() ) ) ) {
+				$registry->register( $this );
 			}
-		);
+		};
+		add_action( 'woocommerce_blocks_checkout_block_registration', $register );
+		add_action( 'woocommerce_blocks_cart_block_registration', $register );
 	}
 
 	/**
@@ -84,6 +85,7 @@ final class Integration implements IntegrationInterface {
 	 * @return array<string, mixed>
 	 */
 	public function get_script_data(): array {
+		// Order rules do not need the sync: the cart data has their messages per payment method.
 		$sources = $this->plugin->rules->index()->sources(
 			[ Definitions::TARGET_TAX_CALC, Definitions::TARGET_TAX_DISPLAY, Definitions::TARGET_FIELD ]
 		);

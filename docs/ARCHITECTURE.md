@@ -38,6 +38,7 @@ src/
   Classic/    Fields.php, Payments.php, Shipping.php, TaxDisplay.php, Assets.php, Notices.php
   Blocks/     Integration.php (IntegrationInterface), StoreApi.php, Locale.php, Validation.php
   Tax/        TaxRules.php (2-р шат)
+  Order/      Restrictions.php (block_checkout / block_order), Messages.php (placeholder) — 1.1
   Compat/     Woodmart.php, ...
   Admin/      Menu.php, RestController.php, FieldCatalog.php, AdminNotices.php
 assets/src/   admin/, classic/, blocks/, shared/evaluator.js
@@ -111,6 +112,11 @@ tools/        wp-cli.phar (gitignored), fixtures.sh
 | Client-д context дамжуулах | `woocommerce_update_order_review_fragments` | `class-wc-ajax.php:380, 514` | `<script type="application/json" class="ccfo-ctx">` fragment. |
 | Хоосон үеийн мессеж | `woocommerce_no_available_payment_methods_message`, `woocommerce_no_shipping_available_html`, `woocommerce_cart_no_shipping_available_html` | `templates/checkout/payment.php:34`, `templates/cart/cart-shipping.php:67,79` | SPEC §8.3 |
 | Order meta | `woocommerce_checkout_create_order` | `class-wc-checkout.php:487` | `_ccfo_applied_rules` (HPOS-safe CRUD). |
+| Cart: "Proceed to checkout" (1.1) | `woocommerce_proceed_to_checkout` (action) | `includes/wc-template-hooks.php:247–248` | Priority 1-д `wc_get_pay_buttons`, `woocommerce_button_proceed_to_checkout`-ийг түр авч, идэвхгүй товч + мессеж хэвлэнэ; `PHP_INT_MAX`-д буцааж нэмнэ. Cart totals AJAX-аар дахин зурагдах бүрт шинэчлэгдэнэ. |
+| Mini cart (1.1) | `woocommerce_widget_shopping_cart_buttons` | `wc-template-hooks.php:233` | `woocommerce_widget_shopping_cart_proceed_to_checkout`-ийг идэвхгүй товчоор солино. Cart fragments-аар шинэчлэгдэнэ. |
+| "Place order" (1.1) | `woocommerce_order_button_html` (filter), `woocommerce_review_order_before_submit` (action) | `templates/checkout/payment.php:53` | `disabled` + мессеж. Payment хэсэг `update_order_review` бүрт дахин зурагддаг тул JS шаардлагагүй. |
+| Express payment (1.1) | `woocommerce_checkout_before_customer_details` | `wc-template-hooks.php:227` | Хориглогдсон үед `wc_get_pay_buttons`-ийг харуулахгүй. |
+| Захиалга татгалзах (1.1) | `woocommerce_after_checkout_validation` | `class-wc-checkout.php:1070` | `ccfo_order_blocked` алдаа. `woocommerce_check_cart_items`-ийг **ашиглаагүй**: checkout хуудсанд алдаа гарвал WC бүх формыг `cart-errors.php`-аар солих тул худалдан авагч талбараа засах боломжгүй болно. |
 
 **Classic JS (`assets/src/classic`)**:
 - Талбарын `change`/`input` (debounce 150ms), `updated_checkout`, `country_to_state_changed`, `payment_method_selected` event-уудыг сонсож, `.form-row`-д `ccfo-hidden` toggle хийнэ.
@@ -127,7 +133,8 @@ tools/        wp-cli.phar (gitignored), fixtures.sh
 | Shipping | `woocommerce_package_rates` + `validate_selected_shipping_methods()` | `StoreApi/Utilities/OrderController.php:148, 694` | Ижил filter, ижил кэш шийдэл. ✔ |
 | Client төлөв серверт | `woocommerce_store_api_register_update_callback` / JS `extensionCartUpdate` | `StoreApi/Schemas/ExtendSchema.php:140` | Сонгосон payment method зэргийг session-д бичиж, totals-ийг дахин тооцуулна. |
 | Context client-д | `register_endpoint_data` (cart endpoint) | `ExtendSchema.php:85` | `extensions.ccfo` дотор decision-ууд. |
-| Submit validation | `woocommerce_store_api_checkout_update_order_from_request` | `StoreApi/Utilities/CheckoutTrait.php:254` | `RouteException` шидэж хориглоно. Order meta-г энд бичнэ. |
+| Submit validation | `woocommerce_store_api_checkout_update_order_from_request` | `StoreApi/Utilities/CheckoutTrait.php:254` | `RouteException` шидэж хориглоно. Order meta-г энд бичнэ. 1.1-ээс зөвхөн `POST` (захиалга өгөх) хүсэлтэд шалгана: ижил action draft шинэчлэх PUT/PATCH-д ч ажилладаг (WC 9.9.3, failed-payment retry). |
+| Order дүрэм (1.1) | `extensions.ccfo.checkoutBlocked` / `orderBlocked` / `orderBlockedByMethod` | `StoreApi.php` | Cart/Checkout Block-д `build/blocks.js` notice (`core/notices`, context `wc/cart` / `wc/checkout`) гаргаж, товчийг барина. Checkout Block-д `wc/store/validation`-д нуугдмал алдаа нэмж submit-ийг зогсооно. Захиалгыг сервер `ccfo_order_blocked` (400)-оор татгалзана. |
 | Additional fields (бусад plugin) | Тэдний өөрийн JSON-schema `required`/`hidden` rules | `Blocks/Domain/Services/CheckoutFields.php:255–309` | Бид өөрчлөхгүй, зөвхөн catalog-д "managed by owner" гэж харуулна. |
 | Payment UI | — | — | `registerPaymentMethodExtensionCallbacks` **хэрэггүй** болох нь батлагдсан: Block UI нь Store API-ийн `payment_methods`-ийг дагадаг (E2E B1). |
 | Block хуудсын preload | `woocommerce_available_payment_gateways` | — | Хуудас render хийхэд cart-ийг preload хийдэг тул payment дүрэм `has_block( 'woocommerce/checkout' )` хуудсан дээр ч хэрэгжинэ (E2E B1-ээр илэрсэн алдаа, засагдсан). |
@@ -200,7 +207,7 @@ tools/        wp-cli.phar (gitignored), fixtures.sh
 |---|---|---|---|
 | Unit | PHPUnit 10 (PHP 8.1 platform) | Evaluator, Operators, Resolver, RuleSchema, Linter | WP-гүй |
 | JS unit | Jest (`@wordpress/scripts`) | shared evaluator (ижил fixture), classic DOM toggle | jsdom |
-| Integration | PHPUnit + `wp-load.php` | Hook-ууд, Store API хүсэлтүүд (`rest_do_request`), кэш, order meta | brand.mn DB. Fixture-ийг `ccfo-test-` prefix-тэй үүсгээд цэвэрлэнэ. |
+| Integration | PHPUnit + `wp-load.php` | Hook-ууд, Store API хүсэлтүүд (`rest_do_request`), кэш, order meta, order дүрэм (бодит Store API checkout-оор), дүнгийн source-ууд горим бүрт | brand.mn DB. Fixture-ийг `ccfo-test-` prefix-тэй үүсгээд цэвэрлэнэ. |
 | E2E | Playwright (`ignoreHTTPSErrors`) | SPEC §11 сценари Classic + Block | https://brand.mn |
 
 **Fixture (`tools/fixtures.php setup|teardown`, WP-CLI eval-file):**
@@ -208,7 +215,7 @@ tools/        wp-cli.phar (gitignored), fixtures.sh
 - Shipping zone MN: flat_rate, free_shipping, local_pickup.
 - Payment: COD, BACS асаана.
 - Хэрэглэгч: customer, `ccfo_wholesale` role, test admin.
-- Block checkout тест хуудас.
+- Block checkout тест хуудас, Block cart тест хуудас (1.1, `WC_Install::get_cart_block_content()`).
 - Test-only mu-plugin (`tests/e2e/mu-plugins/ccfo-test-fields.php`): гуравдагч талын талбарыг дуурайх `billing_vat` (classic).
 - Block checkout хуудас нь WooCommerce-ийн `WC_Install::get_checkout_block_content()` markup-аар үүснэ (inner block-гүй бол classic формоор render хийгддэг).
 - Татварын тест (A11, A12) ажиллах үед `woocommerce_calc_taxes`-ийг түр асааж, дараа нь буцаана.
@@ -227,12 +234,25 @@ tools/        wp-cli.phar (gitignored), fixtures.sh
 | M5 | Block: spike → COMPATIBILITY.md, Store API extension, payment/shipping parity, field дэмжлэг §6 | A1, A3–A7, A9 (B) |
 | M6 | Татварын тооцооллын дүрэм | A12 (C+B), totals ижил |
 | M7 | Adapter-ууд, i18n, readme, zip, MANUAL-TEST, WC 9.9.3 шалгалт | SPEC §12 |
+| M8 (1.1) | Дүнгийн source-ууд, ангиллын дэд дүн, order дүрэм (Classic + Block), placeholder, linter | SPEC §13, A13–A17 |
 
 ## 13. Эрсдэл ба нээлттэй асуулт
 
 1. **Block core талбар** (§6): "бүх талбар" гэж амлахгүй. Дэмжлэгийн түвшинг admin болон COMPATIBILITY.md-д ил харуулна.
 2. ~~Татварын мөр нуух нь order tax line-д нөлөөлөх эсэх~~ — шийдэгдсэн (§8): харагдацын түвшинд л хэрэгжинэ.
 3. Classic дээр payment method солигдоход WC default-аар totals дахин тооцогдохгүй. Payment-аас хамаарсан татварын дүрэм байвал л `update_checkout` trigger хийнэ.
-4. Store API checkout дээр `payment_method`-ийг сонгох хүртэл серверт мэдэгдэхгүй. Payment-аас хамаарсан tax дүрэмд `extensionCartUpdate` шаардлагатай (M6).
+4. Store API checkout дээр `payment_method`-ийг сонгох хүртэл серверт мэдэгдэхгүй. Payment-аас хамаарсан tax дүрэмд `extensionCartUpdate` шаардлагатай (M6). 1.1: түүний cart хариу WooCommerce серверт хараахан илгээгээгүй хаягийн утгыг дарж бичдэг нь E2E-гээр илэрсэн; одоо (а) юу ч сонгоогүй үед сервер Block шиг эхний боломжит аргыг ашиглаж, `extensions.ccfo.paymentMethod`-оор мэдэгдэх тул ачаалах үед синк хийхгүй; (б) хэрэглэгч солих үед локал хаягийн сүүлийн өөрчлөлтөөс хойш 3.5 сек (WC хаягийг ~2–3 сек-ийн дараа илгээдэг) ба `isCustomerDataUpdating()` дуустал хүлээж, хамгийн ихдээ 10 сек-ийн дараа илгээнэ (`assets/src/blocks/sync.js`). `getCartData()`-ийн хаяг локал засварыг шууд тусгадаг тул "серверийн хуулбартай харьцуулах" боломжгүй. E2E нь хүлээлтгүй хувилбар дээр 3/3 унаж, засвартай 3/3 давсан. Order дүрэмд синк хэрэггүй: сервер төлбөрийн арга бүрийн мессежийг (`orderBlockedByMethod`) урьдчилан өгнө.
 5. WC 9.9.3: статик байдлаар шалгасан, ажиллуулж туршаагүй.
 6. ~~Block талбарын дүрэм~~ — шийдсэн (§6): `require`-ийг submit үед шалгана, `show`/`hide` нь Classic-д л ажиллана.
+7. Order дүрэм (1.1): өөрийн урсгалаар захиалга үүсгэдэг express payment товч серверийн шалгалтаас гадуур гарч болзошгүй. Хориглогдсон үед cart/checkout дээр `wc_get_pay_buttons`-ийг харуулахгүй. Mini-Cart **block**-ийн товчийг удирдахгүй (Checkout Block захиалгыг хориглоно).
+
+## 14. Захиалгын хязгаарлалт ба дүнгийн source (1.1)
+
+**Шийдвэрүүд:**
+
+- **Тусдаа `order` target, хоёр action.** `block_checkout` = cart шат (cart, mini cart) + checkout шат; `block_order` = зөвхөн checkout шат. Аль ч биелсэн дүрэм хориглоно, priority зөвхөн мессежийн дарааллыг тогтооно (`Order\Restrictions::decide()`).
+- **Сервер л шийднэ.** Classic-д товч, мессеж нь WooCommerce-ийн серверээр зурдаг хэсэгт (cart totals, payment section, mini cart fragments) байдаг тул тусгай JS хэрэггүй. Block-д `extensions.ccfo`-ийн мессежийг `assets/src/blocks/order.js` харуулна.
+- **Placeholder** (`Order\Messages`): биелсэн group-ийн нөхцөлөөс `{min}`/`{remaining}` (`lt`/`lte`), `{max}`/`{excess}` (`gt`/`gte`), `{current}` гаргана. Мөнгийг `wc_price()`, жинг нэгжтэй форматална. Unit тест нь форматлагчийг орлуулж WP-гүй ажиллана.
+- **Дүнгийн source-ууд:** `WC_Cart` getter-ээр (`get_subtotal_tax`, `get_cart_contents_total`, `get_discount_total`, `get_shipping_total`, `get_total_tax`, `get_applied_coupons`). `calculate_item_totals()` нь `calculate_shipping_totals()`-оос өмнө ажилладаг тул (`class-wc-cart-totals.php:153`) хөнгөлөлтийн дараах дүнг shipping дүрэм уншиж болно. `tax_calc` нь totals-оос өмнө ажилладаг тул эдгээрийг уншихгүй.
+- **Ангиллын дэд дүн, барааны үнэ:** totals-аас биш `wc_get_price_excluding_tax()`-аас, мөр бүрийг үнийн нарийвчлалаар бөөрөнхийлж тооцно. Тиймээс `tax_calc` дүрэм ч тухайн тооцооны шинэ тоог шууд хардаг (integration тестээр баталсан). Variation-ий ангилал эцэг бүтээгдэхүүнээс, дэд ангилал эцэгтээ тооцогдоно.
+- **Checkout Block дахь төлбөрийн арга:** order дүрэм `payment.method` уншвал cart data-д төлбөрийн арга бүрийн мессеж (`orderBlockedByMethod`) ирнэ. JS идэвхтэй аргынхыг шууд сонгоно, серверт синк хийхгүй.

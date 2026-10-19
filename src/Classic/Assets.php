@@ -189,7 +189,7 @@ final class Assets {
 	}
 
 	/**
-	 * Conditions of server-side rules (payment, shipping, tax calculation) that read
+	 * Conditions of server-side rules (payment, shipping, tax calculation, order) that read
 	 * form values. The browser evaluates them and refreshes the checkout when one of
 	 * the results changes, so the server applies the rules to the new values.
 	 *
@@ -203,7 +203,7 @@ final class Assets {
 		$conditions = [];
 		$payment    = false;
 
-		foreach ( [ Definitions::TARGET_PAYMENT, Definitions::TARGET_SHIPPING, Definitions::TARGET_TAX_CALC ] as $type ) {
+		foreach ( [ Definitions::TARGET_PAYMENT, Definitions::TARGET_SHIPPING, Definitions::TARGET_TAX_CALC, Definitions::TARGET_ORDER ] as $type ) {
 			foreach ( $index->of_type( $type ) as $rule ) {
 				foreach ( $rule->groups as $group ) {
 					foreach ( $group as $condition ) {

@@ -24,6 +24,7 @@ final class RuleSchema {
 	private const MAX_GROUPS     = 20;
 	private const MAX_CONDITIONS = 20;
 	private const MAX_LIST       = 500;
+	private const MAX_MESSAGE    = 500;
 
 	/**
 	 * Validation errors of the last validate() call.
@@ -173,6 +174,9 @@ final class RuleSchema {
 	 * @return array<string, mixed>
 	 */
 	private function validate_args( int $index, string $id, string $action, mixed $args, array $env ): array {
+		if ( in_array( $action, Definitions::ACTIONS[ Definitions::TARGET_ORDER ], true ) ) {
+			return $this->validate_message( $index, $id, $args );
+		}
 		if ( 'set_tax_class' !== $action ) {
 			return [];
 		}
@@ -189,6 +193,29 @@ final class RuleSchema {
 		}
 
 		return [ 'tax_class' => $tax_class ];
+	}
+
+	/**
+	 * Validate the customer message of an order rule. An empty message means
+	 * "use the default message from the settings".
+	 *
+	 * @param int    $index Rule index.
+	 * @param string $id    Rule id.
+	 * @param mixed  $args  Raw args.
+	 * @return array<string, mixed>
+	 */
+	private function validate_message( int $index, string $id, mixed $args ): array {
+		$message = is_array( $args ) ? ( $args['message'] ?? '' ) : '';
+		if ( ! is_string( $message ) ) {
+			$this->error( $index, $id, 'args.message', __( 'The message must be text.', 'conditional-checkout-fields-and-options-for-woocommerce' ) );
+			return [];
+		}
+		if ( mb_strlen( $message ) > self::MAX_MESSAGE ) {
+			/* translators: %d: maximum number of characters */
+			$this->error( $index, $id, 'args.message', sprintf( __( 'The message can have up to %d characters.', 'conditional-checkout-fields-and-options-for-woocommerce' ), self::MAX_MESSAGE ) );
+			return [];
+		}
+		return [ 'message' => $this->clean_text( $message, self::MAX_MESSAGE ) ];
 	}
 
 	/**
@@ -382,12 +409,13 @@ final class RuleSchema {
 	/**
 	 * Remove markup and control characters from user text.
 	 *
-	 * @param string $text Raw text.
+	 * @param string $text   Raw text.
+	 * @param int    $length Maximum length.
 	 */
-	private function clean_text( string $text ): string {
+	private function clean_text( string $text, int $length = 200 ): string {
 		$text = wp_strip_all_tags( $text );
 		$text = (string) preg_replace( '/[\x00-\x1F\x7F]/u', '', $text );
-		return mb_substr( trim( $text ), 0, 200 );
+		return mb_substr( trim( $text ), 0, $length );
 	}
 
 	/**

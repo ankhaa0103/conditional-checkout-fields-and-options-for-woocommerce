@@ -24,6 +24,10 @@ export const TARGET_LABELS = {
 		'Tax calculation',
 		'conditional-checkout-fields-and-options-for-woocommerce'
 	),
+	order: __(
+		'Order',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
 };
 
 export const ACTION_LABELS = {
@@ -59,6 +63,14 @@ export const ACTION_LABELS = {
 		'Use another tax class for cart items when…',
 		'conditional-checkout-fields-and-options-for-woocommerce'
 	),
+	block_checkout: __(
+		'Block checkout (cart button and Place order) when…',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	block_order: __(
+		'Block placing the order (checkout only) when…',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
 };
 
 export const SOURCE_LABELS = {
@@ -66,8 +78,40 @@ export const SOURCE_LABELS = {
 		'Cart subtotal (before discounts, excl. tax)',
 		'conditional-checkout-fields-and-options-for-woocommerce'
 	),
+	'cart.subtotal_incl_tax': __(
+		'Cart subtotal (before discounts, incl. tax)',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	'cart.contents_total': __(
+		'Cart total after discounts (excl. tax)',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	'cart.discount_total': __(
+		'Discount amount (excl. tax)',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	'cart.shipping_total': __(
+		'Shipping cost (excl. tax)',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	'cart.tax_total': __(
+		'Tax amount',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
 	'cart.total': __(
 		'Order total',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	'cart.max_item_price': __(
+		'Most expensive product price (excl. tax)',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	'cart.min_item_price': __(
+		'Cheapest product price (excl. tax)',
+		'conditional-checkout-fields-and-options-for-woocommerce'
+	),
+	'cart.coupons': __(
+		'Coupon codes applied',
 		'conditional-checkout-fields-and-options-for-woocommerce'
 	),
 	'cart.item_count': __(

@@ -357,7 +357,104 @@ async function amount( locator ) {
 	return Number( text.replace( /[^0-9.]/g, '' ) );
 }
 
+/**
+ * Checkout Block page of the fixtures, ready for input.
+ *
+ * The block page is not the WooCommerce checkout page: on this site the Woodmart
+ * theme's checkout layout replaces the Checkout Block on that page.
+ *
+ * @param {import('@playwright/test').Page} page Page.
+ */
+async function openBlockCheckout( page ) {
+	await page.goto( '/ccfo-block-checkout/', {
+		waitUntil: 'domcontentloaded',
+	} );
+	await page.waitForSelector( '.wc-block-checkout__form', {
+		timeout: 30000,
+	} );
+	await page.waitForFunction(
+		() =>
+			! document.querySelector(
+				'.wc-block-components-loading-mask, .is-loading'
+			),
+		null,
+		{ timeout: 30000 }
+	);
+}
+
+async function fillBlockAddress( page, { waitForSave = true } = {} ) {
+	// WooCommerce sends address input a few seconds after the last change. On this
+	// slow test site an order placed before that can stay "processing" (also without
+	// any rules), so wait until the address has been saved — or 20 s at most.
+	const saved = page
+		.waitForResponse(
+			( r ) =>
+				/update-customer/.test( r.request().postData() || '' ) &&
+				/Peace Avenue 2/.test( r.request().postData() || '' ),
+			{ timeout: 20000 }
+		)
+		.catch( () => null );
+	await page.fill( '#email', 'block-buyer@example.test' );
+	const values = {
+		first_name: 'Block',
+		last_name: 'Buyer',
+		address_1: 'Peace Avenue 2',
+		city: 'Ulaanbaatar',
+		postcode: '14200',
+		phone: '99112233',
+		state: 'UB',
+	};
+	for ( const [ key, value ] of Object.entries( values ) ) {
+		for ( const prefix of [ 'shipping', 'billing' ] ) {
+			const input = page.locator( `#${ prefix }-${ key }` );
+			if ( ( await input.count() ) && ( await input.isVisible() ) ) {
+				await input.fill( value );
+			}
+		}
+	}
+	if ( waitForSave ) {
+		await saved;
+	}
+}
+
+async function placeBlockOrder( page ) {
+	// A payment method change sends a draft update (PUT /checkout) and address input
+	// is sent after a pause; on this slow test server the order can hang in
+	// "processing" when it is placed while those requests are still running.
+	await page
+		.waitForLoadState( 'networkidle', { timeout: 20000 } )
+		.catch( () => {} );
+	await page.waitForFunction(
+		() => {
+			const data = window.wp?.data;
+			const checkout = data?.select( 'wc/store/checkout' );
+			const cart = data?.select( 'wc/store/cart' );
+			return (
+				checkout?.isIdle?.() !== false &&
+				! checkout?.isCalculating?.() &&
+				! cart?.isCustomerDataUpdating?.()
+			);
+		},
+		null,
+		{ timeout: 20000 }
+	);
+	await page
+		.locator( '.wc-block-components-checkout-place-order-button' )
+		.click();
+	await page.waitForFunction(
+		() =>
+			document.querySelector(
+				'.wc-block-components-notice-banner.is-error, .wc-block-store-notice.is-error'
+			) || /order-received/.test( window.location.href ),
+		null,
+		{ timeout: 45000 }
+	);
+}
+
 module.exports = {
+	openBlockCheckout,
+	fillBlockAddress,
+	placeBlockOrder,
 	useAdmin,
 	deleteOption,
 	login,

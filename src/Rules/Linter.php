@@ -11,6 +11,8 @@ namespace CCFO\Rules;
 
 defined( 'ABSPATH' ) || exit;
 
+use CCFO\Order\Messages;
+
 /**
  * Pure checks over a rule set and a description of the store.
  *
@@ -22,6 +24,7 @@ defined( 'ABSPATH' ) || exit;
  * - tax_enabled:     bool
  * - tax_inclusive:   bool          prices shown including tax in cart/checkout
  * - block_checkout:  bool          checkout page uses the Checkout Block
+ * - categories:      list<string>  product category ids
  */
 final class Linter {
 
@@ -49,6 +52,8 @@ final class Linter {
 			$this->check_target_exists( $rule, $env );
 			$this->check_effect( $rule, $env );
 			$this->check_block_support( $rule, $env );
+			$this->check_groups( $rule );
+			$this->check_message( $rule );
 		}
 
 		$this->check_conflicts( $enabled );
@@ -71,10 +76,7 @@ final class Linter {
 			Definitions::TARGET_SHIPPING => 'shipping',
 		];
 		$list  = $lists[ $rule->target_type ] ?? null;
-		if ( null === $list || ! isset( $env[ $list ] ) || ! is_array( $env[ $list ] ) ) {
-			return;
-		}
-		if ( ! in_array( $rule->target_key, $env[ $list ], true ) ) {
+		if ( null !== $list && isset( $env[ $list ] ) && is_array( $env[ $list ] ) && ! in_array( $rule->target_key, $env[ $list ], true ) ) {
 			$this->add(
 				$rule,
 				'warning',
@@ -92,6 +94,15 @@ final class Linter {
 					'missing_source_field',
 					/* translators: %s: field key */
 					sprintf( __( 'Condition field "%s" is not on the checkout now; its value is always empty.', 'conditional-checkout-fields-and-options-for-woocommerce' ), Definitions::field_key( $source ) )
+				);
+			}
+			if ( Definitions::is_category_subtotal_source( $source ) && isset( $env['categories'] ) && is_array( $env['categories'] ) && ! in_array( (string) Definitions::category_id( $source ), $env['categories'], true ) ) {
+				$this->add(
+					$rule,
+					'warning',
+					'missing_category',
+					/* translators: %d: product category id */
+					sprintf( __( 'Product category %d no longer exists; its subtotal is always 0.', 'conditional-checkout-fields-and-options-for-woocommerce' ), Definitions::category_id( $source ) )
 				);
 			}
 		}
@@ -121,6 +132,161 @@ final class Linter {
 		if ( [] === $rule->groups && in_array( $rule->action, [ 'hide', 'disable' ], true ) ) {
 			$this->add( $rule, 'info', 'unconditional', __( 'This rule has no conditions and always applies.', 'conditional-checkout-fields-and-options-for-woocommerce' ) );
 		}
+
+		if ( [] === $rule->groups && Definitions::TARGET_ORDER === $rule->target_type ) {
+			$this->add(
+				$rule,
+				'warning',
+				'always_blocks',
+				'block_checkout' === $rule->action
+					? __( 'This rule has no conditions: no customer can go to the checkout.', 'conditional-checkout-fields-and-options-for-woocommerce' )
+					: __( 'This rule has no conditions: no customer can place an order.', 'conditional-checkout-fields-and-options-for-woocommerce' )
+			);
+		}
+	}
+
+	/**
+	 * Groups whose number conditions contradict each other never match,
+	 * e.g. "order total < 100" and "order total > 500".
+	 *
+	 * @param Rule $rule Rule.
+	 */
+	private function check_groups( Rule $rule ): void {
+		foreach ( $rule->groups as $g => $group ) {
+			$ranges = [];
+			foreach ( $group as $condition ) {
+				$range = self::range( $condition );
+				if ( null === $range ) {
+					continue;
+				}
+				$source            = $condition['source'];
+				$ranges[ $source ] = isset( $ranges[ $source ] ) ? self::intersect( $ranges[ $source ], $range ) : $range;
+				if ( self::is_empty_range( $ranges[ $source ] ) ) {
+					$this->add(
+						$rule,
+						'warning',
+						'never_matches',
+						sprintf(
+							/* translators: 1: condition group number, 2: condition source */
+							__( 'Condition group %1$d can never match: its conditions on "%2$s" contradict each other.', 'conditional-checkout-fields-and-options-for-woocommerce' ),
+							$g + 1,
+							$source
+						)
+					);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Placeholders in the message of an order rule need a condition to take their value from.
+	 *
+	 * @param Rule $rule Rule.
+	 */
+	private function check_message( Rule $rule ): void {
+		$message = isset( $rule->args['message'] ) && is_string( $rule->args['message'] ) ? $rule->args['message'] : '';
+		if ( Definitions::TARGET_ORDER !== $rule->target_type || '' === $message ) {
+			return;
+		}
+
+		foreach ( Messages::placeholders( $message ) as $placeholder ) {
+			if ( ! in_array( $placeholder, Definitions::MESSAGE_PLACEHOLDERS, true ) ) {
+				$this->add(
+					$rule,
+					'warning',
+					'unknown_placeholder',
+					sprintf(
+						/* translators: 1: placeholder, 2: list of placeholders */
+						__( '%1$s is not a known placeholder and is shown as it is. Known placeholders: %2$s.', 'conditional-checkout-fields-and-options-for-woocommerce' ),
+						$placeholder,
+						implode( ' ', Definitions::MESSAGE_PLACEHOLDERS )
+					)
+				);
+				continue;
+			}
+
+			$operators = Messages::operators_for( $placeholder );
+			$found     = false;
+			foreach ( $rule->groups as $group ) {
+				foreach ( $group as $condition ) {
+					if ( in_array( $condition['operator'], $operators, true ) ) {
+						$found = true;
+						break 2;
+					}
+				}
+			}
+			if ( ! $found ) {
+				$this->add(
+					$rule,
+					'warning',
+					'empty_placeholder',
+					sprintf(
+						/* translators: %s: placeholder */
+						__( '%s stays empty: no condition of this rule compares a number the way it needs ({min} and {remaining}: less than; {max} and {excess}: greater than).', 'conditional-checkout-fields-and-options-for-woocommerce' ),
+						$placeholder
+					)
+				);
+			}
+		}
+	}
+
+	/**
+	 * Number range a condition accepts, or null when it is not a range condition.
+	 *
+	 * @param array{source: string, operator: string, value?: mixed} $condition Condition.
+	 * @return array{0: float, 1: bool, 2: float, 3: bool}|null [low, low open, high, high open]
+	 */
+	private static function range( array $condition ): ?array {
+		$value = $condition['value'] ?? null;
+		$n     = is_int( $value ) || is_float( $value ) ? (float) $value : null;
+		if ( 'between' === $condition['operator'] ) {
+			return is_array( $value ) && 2 === count( $value ) ? [ (float) $value[0], false, (float) $value[1], false ] : null;
+		}
+		if ( null === $n ) {
+			return null;
+		}
+		switch ( $condition['operator'] ) {
+			case 'gt':
+				return [ $n, true, INF, false ];
+			case 'gte':
+				return [ $n, false, INF, false ];
+			case 'lt':
+				return [ -INF, false, $n, true ];
+			case 'lte':
+				return [ -INF, false, $n, false ];
+			case 'eq':
+				return [ $n, false, $n, false ];
+		}
+		return null;
+	}
+
+	/**
+	 * Intersection of two ranges.
+	 *
+	 * @param array{0: float, 1: bool, 2: float, 3: bool} $a Range.
+	 * @param array{0: float, 1: bool, 2: float, 3: bool} $b Range.
+	 * @return array{0: float, 1: bool, 2: float, 3: bool}
+	 */
+	private static function intersect( array $a, array $b ): array {
+		if ( $b[0] > $a[0] || ( $b[0] === $a[0] && $b[1] ) ) {
+			$a[0] = $b[0];
+			$a[1] = $b[1];
+		}
+		if ( $b[2] < $a[2] || ( $b[2] === $a[2] && $b[3] ) ) {
+			$a[2] = $b[2];
+			$a[3] = $b[3];
+		}
+		return $a;
+	}
+
+	/**
+	 * Whether a range holds no number.
+	 *
+	 * @param array{0: float, 1: bool, 2: float, 3: bool} $range Range.
+	 */
+	private static function is_empty_range( array $range ): bool {
+		return $range[0] > $range[2] || ( $range[0] === $range[2] && ( $range[1] || $range[3] ) );
 	}
 
 	/**

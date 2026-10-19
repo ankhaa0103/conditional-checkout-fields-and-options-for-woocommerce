@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Conditional Checkout Fields and Options for WooCommerce 1.0.0\n"
+"Project-Id-Version: Conditional Checkout Fields and Options for WooCommerce 1.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/conditional-checkout-fields-and-options-for-woocommerce\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-18T11:51:15+08:00\n"
+"POT-Creation-Date: 2026-10-20T06:00:13+08:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: conditional-checkout-fields-and-options-for-woocommerce\n"
@@ -69,12 +69,24 @@ msgstr ""
 msgid "Review the rules"
 msgstr ""
 
-#: src/Blocks/StoreApi.php:102
+#: src/Blocks/StoreApi.php:147
 msgid "Whether a checkout rule hides the \"includes tax\" note."
 msgstr ""
 
+#: src/Blocks/StoreApi.php:152
+msgid "Messages of the rules that block going to the checkout; empty when checkout is allowed."
+msgstr ""
+
+#: src/Blocks/StoreApi.php:153
+msgid "Messages of the rules that block placing the order; empty when the order can be placed."
+msgstr ""
+
+#: src/Blocks/StoreApi.php:155
+msgid "The same messages for each payment method, when order rules read the payment method."
+msgstr ""
+
 #. translators: %s: field name
-#: src/Blocks/StoreApi.php:160
+#: src/Blocks/StoreApi.php:232
 #, php-format
 msgid "%s is a required field."
 msgstr ""
@@ -84,51 +96,83 @@ msgid "Checkout rules applied"
 msgstr ""
 
 #. translators: %s: field key, gateway id or shipping method id
-#: src/Rules/Linter.php:83
+#: src/Rules/Linter.php:85
 #, php-format
 msgid "\"%s\" is not active in the store now, so this rule does nothing."
 msgstr ""
 
 #. translators: %s: field key
-#: src/Rules/Linter.php:94
+#: src/Rules/Linter.php:96
 #, php-format
 msgid "Condition field \"%s\" is not on the checkout now; its value is always empty."
 msgstr ""
 
-#: src/Rules/Linter.php:110
+#. translators: %d: product category id
+#: src/Rules/Linter.php:105
+#, php-format
+msgid "Product category %d no longer exists; its subtotal is always 0."
+msgstr ""
+
+#: src/Rules/Linter.php:121
 msgid "The \"includes tax\" note only shows when taxes are enabled and cart prices are displayed including tax, so this rule does nothing now."
 msgstr ""
 
-#: src/Rules/Linter.php:114
+#: src/Rules/Linter.php:125
 msgid "Taxes are disabled in WooCommerce, so this rule does nothing."
 msgstr ""
 
-#: src/Rules/Linter.php:118
+#: src/Rules/Linter.php:129
 msgid "Orders without this field may not be processed correctly (emails, taxes, shipping)."
 msgstr ""
 
-#: src/Rules/Linter.php:122
+#: src/Rules/Linter.php:133
 msgid "This rule has no conditions and always applies."
 msgstr ""
 
-#: src/Rules/Linter.php:139
-msgid "Checkout Block: the field is checked when the order is placed, but it is not marked as required in the form."
+#: src/Rules/Linter.php:142
+msgid "This rule has no conditions: no customer can go to the checkout."
 msgstr ""
 
 #: src/Rules/Linter.php:143
+msgid "This rule has no conditions: no customer can place an order."
+msgstr ""
+
+#. translators: 1: condition group number, 2: condition source
+#: src/Rules/Linter.php:171
+#, php-format
+msgid "Condition group %1$d can never match: its conditions on \"%2$s\" contradict each other."
+msgstr ""
+
+#. translators: 1: placeholder, 2: list of placeholders
+#: src/Rules/Linter.php:201
+#, php-format
+msgid "%1$s is not a known placeholder and is shown as it is. Known placeholders: %2$s."
+msgstr ""
+
+#. translators: %s: placeholder
+#: src/Rules/Linter.php:226
+#, php-format
+msgid "%s stays empty: no condition of this rule compares a number the way it needs ({min} and {remaining}: less than; {max} and {excess}: greater than)."
+msgstr ""
+
+#: src/Rules/Linter.php:305
+msgid "Checkout Block: the field is checked when the order is placed, but it is not marked as required in the form."
+msgstr ""
+
+#: src/Rules/Linter.php:309
 msgid "Checkout Block: showing, hiding or requiring this field is not possible with the official WooCommerce APIs. The rule works in the classic checkout only."
 msgstr ""
 
-#: src/Rules/Linter.php:219
+#: src/Rules/Linter.php:385
 msgid "Together with other rules, this rule can remove every payment method. Customers then see your \"no payment method\" message and cannot order."
 msgstr ""
 
-#: src/Rules/Linter.php:220
+#: src/Rules/Linter.php:386
 msgid "Together with other rules, this rule can remove every shipping method. Customers then see your \"no shipping method\" message and cannot order."
 msgstr ""
 
 #. translators: 1: other rule title, 2: winning rule title
-#: src/Rules/Linter.php:236
+#: src/Rules/Linter.php:402
 #, php-format
 msgid "Conflicts with \"%1$s\" when both match. \"%2$s\" wins (lower priority number wins; on a tie the hiding/disabling rule wins)."
 msgstr ""
@@ -141,101 +185,111 @@ msgstr ""
 msgid "Some rules are not valid."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:48
+#: src/Rules/RuleSchema.php:49
 msgid "Rules must be a list."
 msgstr ""
 
 #. translators: %d: maximum number of rules
-#: src/Rules/RuleSchema.php:54
+#: src/Rules/RuleSchema.php:55
 #, php-format
 msgid "No more than %d rules are allowed."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:66
+#: src/Rules/RuleSchema.php:67
 msgid "Rule id is used more than once."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:94
+#: src/Rules/RuleSchema.php:95
 msgid "Rule must be an object."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:100
+#: src/Rules/RuleSchema.php:101
 msgid "Rule id must be 1-64 letters, digits, \"-\" or \"_\"."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:110
+#: src/Rules/RuleSchema.php:111
 msgid "Priority must be a whole number from 0 to 1000."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:117
+#: src/Rules/RuleSchema.php:118
 msgid "Unknown target type."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:125
+#: src/Rules/RuleSchema.php:126
 msgid "This action is not allowed for the target."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:158
+#: src/Rules/RuleSchema.php:159
 msgid "Target key is missing or invalid."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:182
+#: src/Rules/RuleSchema.php:186
 msgid "Choose a tax class."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:187
+#: src/Rules/RuleSchema.php:191
 msgid "The tax class does not exist. Only existing WooCommerce tax classes can be used."
 msgstr ""
 
+#: src/Rules/RuleSchema.php:210
+msgid "The message must be text."
+msgstr ""
+
+#. translators: %d: maximum number of characters
+#: src/Rules/RuleSchema.php:215
+#, php-format
+msgid "The message can have up to %d characters."
+msgstr ""
+
 #. translators: %d: maximum number of groups
-#: src/Rules/RuleSchema.php:207
+#: src/Rules/RuleSchema.php:234
 #, php-format
 msgid "Conditions must be a list of up to %d groups."
 msgstr ""
 
 #. translators: %d: maximum number of conditions
-#: src/Rules/RuleSchema.php:215
+#: src/Rules/RuleSchema.php:242
 #, php-format
 msgid "Each group needs 1 to %d conditions."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:245
+#: src/Rules/RuleSchema.php:272
 msgid "Condition must be an object."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:252
+#: src/Rules/RuleSchema.php:279
 msgid "Unknown condition source."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:257
+#: src/Rules/RuleSchema.php:284
 msgid "This condition cannot be used for this target because it would depend on its own result."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:262
+#: src/Rules/RuleSchema.php:289
 msgid "A field rule cannot depend on the same field."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:268
+#: src/Rules/RuleSchema.php:295
 msgid "This operator is not allowed for the condition."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:293
+#: src/Rules/RuleSchema.php:320
 msgid "Choose products or terms from the list."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:372
+#: src/Rules/RuleSchema.php:399
 msgid "Enter a number."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:374
+#: src/Rules/RuleSchema.php:401
 msgid "Choose at least one value."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:376
+#: src/Rules/RuleSchema.php:403
 msgid "Enter a minimum and a maximum number."
 msgstr ""
 
-#: src/Rules/RuleSchema.php:378
+#: src/Rules/RuleSchema.php:405
 msgid "Enter a value."
 msgstr ""
 
@@ -245,6 +299,10 @@ msgstr ""
 
 #: src/Settings.php:29
 msgid "No shipping method is available for your order with the details you entered. Please check your address and cart, or contact us."
+msgstr ""
+
+#: src/Settings.php:31
+msgid "Your order cannot be placed with the current cart. Please review your cart or contact us."
 msgstr ""
 
 #: build/admin.js:1
@@ -265,6 +323,10 @@ msgstr ""
 
 #: build/admin.js:1
 msgid "Tax calculation"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Order"
 msgstr ""
 
 #: build/admin.js:1
@@ -300,11 +362,51 @@ msgid "Use another tax class for cart items when…"
 msgstr ""
 
 #: build/admin.js:1
+msgid "Block checkout (cart button and Place order) when…"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Block placing the order (checkout only) when…"
+msgstr ""
+
+#: build/admin.js:1
 msgid "Cart subtotal (before discounts, excl. tax)"
 msgstr ""
 
 #: build/admin.js:1
+msgid "Cart subtotal (before discounts, incl. tax)"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Cart total after discounts (excl. tax)"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Discount amount (excl. tax)"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Shipping cost (excl. tax)"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Tax amount"
+msgstr ""
+
+#: build/admin.js:1
 msgid "Order total"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Most expensive product price (excl. tax)"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Cheapest product price (excl. tax)"
+msgstr ""
+
+#: build/admin.js:1
+msgid "Coupon codes applied"
 msgstr ""
 
 #: build/admin.js:1
@@ -483,10 +585,6 @@ msgstr ""
 msgid "Account"
 msgstr ""
 
-#: build/admin.js:1
-msgid "Order"
-msgstr ""
-
 #. translators: 1: fieldset, 2: field label, 3: field key
 #: build/admin.js:2
 #, js-format
@@ -529,6 +627,12 @@ msgstr ""
 
 #: build/admin.js:2
 msgid "Maximum"
+msgstr ""
+
+#. translators: %s: product category name
+#: build/admin.js:2
+#, js-format
+msgid "Cart: Subtotal of category \"%s\" (before discounts, excl. tax)"
 msgstr ""
 
 #. translators: %s: field description
@@ -576,6 +680,16 @@ msgstr ""
 
 #: build/admin.js:2
 msgid "Tax class"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Message shown to customers"
+msgstr ""
+
+#. translators: %s: list of placeholders
+#: build/admin.js:2
+#, js-format
+msgid "Leave empty to use the default message from the Settings tab. Placeholders: %s. {min} and {remaining} come from a \"less than\" condition (e.g. order total < 50000), {max} and {excess} from a \"greater than\" condition, {current} is the current value."
 msgstr ""
 
 #: build/admin.js:2
@@ -669,7 +783,7 @@ msgid "Delete this rule?"
 msgstr ""
 
 #: build/admin.js:3
-msgid "Shown to customers when your rules remove every payment or every shipping method."
+msgid "Shown to customers when your rules remove every payment or every shipping method, or block the order."
 msgstr ""
 
 #: build/admin.js:3
@@ -678,6 +792,14 @@ msgstr ""
 
 #: build/admin.js:3
 msgid "No shipping method message"
+msgstr ""
+
+#: build/admin.js:3
+msgid "Default order rule message"
+msgstr ""
+
+#: build/admin.js:3
+msgid "Shown when an order rule (block checkout or block the order) has no message of its own. The placeholders {min}, {max}, {remaining}, {excess} and {current} work here too."
 msgstr ""
 
 #: build/admin.js:3

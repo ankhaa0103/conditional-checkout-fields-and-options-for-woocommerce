@@ -24,6 +24,7 @@ final class Definitions {
 	public const TARGET_SHIPPING    = 'shipping';
 	public const TARGET_TAX_DISPLAY = 'tax_display';
 	public const TARGET_TAX_CALC    = 'tax_calc';
+	public const TARGET_ORDER       = 'order';
 
 	public const TYPE_STRING = 'string';
 	public const TYPE_NUMBER = 'number';
@@ -42,6 +43,7 @@ final class Definitions {
 		self::TARGET_SHIPPING    => [ 'enable', 'disable' ],
 		self::TARGET_TAX_DISPLAY => [ 'hide_tax_note' ],
 		self::TARGET_TAX_CALC    => [ 'set_vat_exempt', 'set_tax_class' ],
+		self::TARGET_ORDER       => [ 'block_checkout', 'block_order' ],
 	];
 
 	/**
@@ -52,6 +54,7 @@ final class Definitions {
 	public const FIXED_KEYS = [
 		self::TARGET_TAX_DISPLAY => 'checkout',
 		self::TARGET_TAX_CALC    => 'cart',
+		self::TARGET_ORDER       => 'order',
 	];
 
 	/**
@@ -104,7 +107,28 @@ final class Definitions {
 		'only_in'      => 'list',
 	];
 
-	private const ALL_TARGETS = [ self::TARGET_FIELD, self::TARGET_PAYMENT, self::TARGET_SHIPPING, self::TARGET_TAX_DISPLAY, self::TARGET_TAX_CALC ];
+	private const ALL_TARGETS = [ self::TARGET_FIELD, self::TARGET_PAYMENT, self::TARGET_SHIPPING, self::TARGET_TAX_DISPLAY, self::TARGET_TAX_CALC, self::TARGET_ORDER ];
+
+	/**
+	 * Sources that hold an amount of money (formatted as a price in messages).
+	 * `cart.category_subtotal:<id>` sources are money too.
+	 */
+	public const MONEY_SOURCES = [
+		'cart.subtotal',
+		'cart.subtotal_incl_tax',
+		'cart.contents_total',
+		'cart.discount_total',
+		'cart.shipping_total',
+		'cart.tax_total',
+		'cart.total',
+		'cart.max_item_price',
+		'cart.min_item_price',
+	];
+
+	/**
+	 * Placeholders allowed in the customer message of an order rule (SPEC §13.3).
+	 */
+	public const MESSAGE_PLACEHOLDERS = [ '{min}', '{max}', '{remaining}', '{excess}', '{current}' ];
 
 	/**
 	 * Sources (SPEC §4). `client` = the browser can read the value itself.
@@ -112,35 +136,49 @@ final class Definitions {
 	 * The target lists exclude circular dependencies: a payment rule cannot
 	 * depend on the chosen payment method, a shipping rule cannot depend on the
 	 * chosen shipping or payment method or on the total that includes shipping.
+	 * Tax calculation rules run before WooCommerce calculates totals, so they
+	 * cannot read amounts that come out of that calculation.
+	 *
+	 * Order rules (block checkout, block the order) change nothing a source
+	 * reads, so they can use every source.
 	 *
 	 * @return array<string, array{type: string, targets: list<string>, client: bool}>
 	 */
 	public static function sources(): array {
 		$all          = self::ALL_TARGETS;
-		$not_shipping = [ self::TARGET_FIELD, self::TARGET_PAYMENT ];
+		$not_shipping = [ self::TARGET_FIELD, self::TARGET_PAYMENT, self::TARGET_ORDER ];
+		$not_tax      = [ self::TARGET_FIELD, self::TARGET_PAYMENT, self::TARGET_SHIPPING, self::TARGET_ORDER ];
 
 		return [
-			'cart.subtotal'         => self::source( self::TYPE_NUMBER, $all ),
-			'cart.total'            => self::source( self::TYPE_NUMBER, $not_shipping ),
-			'cart.item_count'       => self::source( self::TYPE_NUMBER, $all ),
-			'cart.qty'              => self::source( self::TYPE_NUMBER, $all ),
-			'cart.weight'           => self::source( self::TYPE_NUMBER, $all ),
-			'cart.products'         => self::source( self::TYPE_LIST, $all ),
-			'cart.categories'       => self::source( self::TYPE_LIST, $all ),
-			'cart.tags'             => self::source( self::TYPE_LIST, $all ),
-			'cart.shipping_classes' => self::source( self::TYPE_LIST, $all ),
-			'payment.method'        => self::source( self::TYPE_STRING, [ self::TARGET_FIELD, self::TARGET_TAX_DISPLAY, self::TARGET_TAX_CALC ], true ),
-			'shipping.method'       => self::source( self::TYPE_LIST, [ self::TARGET_FIELD, self::TARGET_PAYMENT, self::TARGET_TAX_DISPLAY, self::TARGET_TAX_CALC ], true ),
-			'customer.is_guest'     => self::source( self::TYPE_BOOL, $all ),
-			'customer.role'         => self::source( self::TYPE_LIST, $all ),
-			'billing.country'       => self::source( self::TYPE_STRING, $all, true ),
-			'billing.state'         => self::source( self::TYPE_STRING, $all, true ),
-			'billing.postcode'      => self::source( self::TYPE_STRING, $all, true ),
-			'shipping.country'      => self::source( self::TYPE_STRING, $all, true ),
-			'shipping.state'        => self::source( self::TYPE_STRING, $all, true ),
-			'shipping.postcode'     => self::source( self::TYPE_STRING, $all, true ),
-			'tax.vat_exempt'        => self::source( self::TYPE_BOOL, $not_shipping ),
-			'tax.has_tax'           => self::source( self::TYPE_BOOL, $not_shipping ),
+			'cart.subtotal'          => self::source( self::TYPE_NUMBER, $all ),
+			'cart.subtotal_incl_tax' => self::source( self::TYPE_NUMBER, $not_tax ),
+			'cart.contents_total'    => self::source( self::TYPE_NUMBER, $not_tax ),
+			'cart.discount_total'    => self::source( self::TYPE_NUMBER, $not_tax ),
+			'cart.shipping_total'    => self::source( self::TYPE_NUMBER, $not_shipping ),
+			'cart.tax_total'         => self::source( self::TYPE_NUMBER, $not_shipping ),
+			'cart.total'             => self::source( self::TYPE_NUMBER, $not_shipping ),
+			'cart.max_item_price'    => self::source( self::TYPE_NUMBER, $all ),
+			'cart.min_item_price'    => self::source( self::TYPE_NUMBER, $all ),
+			'cart.coupons'           => self::source( self::TYPE_LIST, $all ),
+			'cart.item_count'        => self::source( self::TYPE_NUMBER, $all ),
+			'cart.qty'               => self::source( self::TYPE_NUMBER, $all ),
+			'cart.weight'            => self::source( self::TYPE_NUMBER, $all ),
+			'cart.products'          => self::source( self::TYPE_LIST, $all ),
+			'cart.categories'        => self::source( self::TYPE_LIST, $all ),
+			'cart.tags'              => self::source( self::TYPE_LIST, $all ),
+			'cart.shipping_classes'  => self::source( self::TYPE_LIST, $all ),
+			'payment.method'         => self::source( self::TYPE_STRING, [ self::TARGET_FIELD, self::TARGET_TAX_DISPLAY, self::TARGET_TAX_CALC, self::TARGET_ORDER ], true ),
+			'shipping.method'        => self::source( self::TYPE_LIST, [ self::TARGET_FIELD, self::TARGET_PAYMENT, self::TARGET_TAX_DISPLAY, self::TARGET_TAX_CALC, self::TARGET_ORDER ], true ),
+			'customer.is_guest'      => self::source( self::TYPE_BOOL, $all ),
+			'customer.role'          => self::source( self::TYPE_LIST, $all ),
+			'billing.country'        => self::source( self::TYPE_STRING, $all, true ),
+			'billing.state'          => self::source( self::TYPE_STRING, $all, true ),
+			'billing.postcode'       => self::source( self::TYPE_STRING, $all, true ),
+			'shipping.country'       => self::source( self::TYPE_STRING, $all, true ),
+			'shipping.state'         => self::source( self::TYPE_STRING, $all, true ),
+			'shipping.postcode'      => self::source( self::TYPE_STRING, $all, true ),
+			'tax.vat_exempt'         => self::source( self::TYPE_BOOL, $not_shipping ),
+			'tax.has_tax'            => self::source( self::TYPE_BOOL, $not_shipping ),
 		];
 	}
 
@@ -154,8 +192,50 @@ final class Definitions {
 		if ( self::is_field_source( $source ) ) {
 			return self::source( self::TYPE_FIELD, self::ALL_TARGETS, true );
 		}
+		if ( self::is_category_subtotal_source( $source ) ) {
+			return self::category_subtotal_source();
+		}
 
 		return self::sources()[ $source ] ?? null;
+	}
+
+	/**
+	 * Whether the source is the subtotal of one product category, `cart.category_subtotal:<term id>`.
+	 *
+	 * @param string $source Source id.
+	 */
+	public static function is_category_subtotal_source( string $source ): bool {
+		return 1 === preg_match( '/^cart\.category_subtotal:[1-9]\d{0,19}$/', $source );
+	}
+
+	/**
+	 * Term id of a `cart.category_subtotal:<term id>` source.
+	 *
+	 * @param string $source Source id.
+	 */
+	public static function category_id( string $source ): int {
+		return (int) substr( $source, strlen( 'cart.category_subtotal:' ) );
+	}
+
+	/**
+	 * Whether the source holds an amount of money.
+	 *
+	 * @param string $source Source id.
+	 */
+	public static function is_money_source( string $source ): bool {
+		return in_array( $source, self::MONEY_SOURCES, true ) || self::is_category_subtotal_source( $source );
+	}
+
+	/**
+	 * Definition shared by all category subtotal sources.
+	 *
+	 * Computed from product prices, not from the cart totals, so tax calculation
+	 * rules can use it too.
+	 *
+	 * @return array{type: string, targets: list<string>, client: bool}
+	 */
+	private static function category_subtotal_source(): array {
+		return self::source( self::TYPE_NUMBER, self::ALL_TARGETS );
 	}
 
 	/**
@@ -189,6 +269,9 @@ final class Definitions {
 			'operatorValues' => self::OPERATOR_VALUE,
 			'sources'        => self::sources(),
 			'fieldSource'    => self::source( self::TYPE_FIELD, self::ALL_TARGETS, true ),
+			'categorySource' => self::category_subtotal_source(),
+			'moneySources'   => self::MONEY_SOURCES,
+			'placeholders'   => self::MESSAGE_PLACEHOLDERS,
 		];
 	}
 

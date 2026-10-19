@@ -25,8 +25,20 @@ final class Evaluator {
 	 * @param Context $context Context.
 	 */
 	public static function matches( Rule $rule, Context $context ): bool {
+		return null !== self::matching_group( $rule, $context );
+	}
+
+	/**
+	 * Conditions of the first group that holds; [] for a rule without groups,
+	 * null when the rule does not match.
+	 *
+	 * @param Rule    $rule    Rule.
+	 * @param Context $context Context.
+	 * @return list<array{source: string, operator: string, value?: mixed}>|null
+	 */
+	public static function matching_group( Rule $rule, Context $context ): ?array {
 		if ( [] === $rule->groups ) {
-			return true;
+			return [];
 		}
 
 		foreach ( $rule->groups as $group ) {
@@ -38,10 +50,10 @@ final class Evaluator {
 				}
 			}
 			if ( $group_matches ) {
-				return true;
+				return $group;
 			}
 		}
 
-		return false;
+		return null;
 	}
 }

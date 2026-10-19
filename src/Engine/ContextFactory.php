@@ -171,7 +171,13 @@ final class ContextFactory {
 				if ( $from_form ) {
 					return $posted['payment_method'] ?? '';
 				}
-				return WC()->session ? (string) WC()->session->get( 'chosen_payment_method', '' ) : '';
+				$chosen = WC()->session ? (string) WC()->session->get( 'chosen_payment_method', '' ) : '';
+				if ( '' === $chosen && self::STORE_API === $mode ) {
+					// Nothing chosen yet: the Checkout Block selects the first available
+					// method, so the server assumes the same and the block need not send it.
+					$chosen = (string) ( array_key_first( WC()->payment_gateways()->get_available_payment_gateways() ) ?? '' );
+				}
+				return $chosen;
 
 			case 'shipping.method':
 				$chosen = self::SUBMIT === $mode && isset( $posted['shipping_method'] )
@@ -193,11 +199,30 @@ final class ContextFactory {
 			return null;
 		}
 
+		if ( Definitions::is_category_subtotal_source( $source ) ) {
+			return self::category_subtotal( $cart, Definitions::category_id( $source ) );
+		}
+
 		switch ( $source ) {
 			case 'cart.subtotal':
 				return (float) $cart->get_subtotal();
+			case 'cart.subtotal_incl_tax':
+				return (float) $cart->get_subtotal() + (float) $cart->get_subtotal_tax();
+			case 'cart.contents_total':
+				return (float) $cart->get_cart_contents_total();
+			case 'cart.discount_total':
+				return (float) $cart->get_discount_total();
+			case 'cart.shipping_total':
+				return (float) $cart->get_shipping_total();
+			case 'cart.tax_total':
+				return (float) $cart->get_total_tax();
 			case 'cart.total':
 				return (float) $cart->get_total( 'edit' );
+			case 'cart.max_item_price':
+			case 'cart.min_item_price':
+				return self::item_price( $cart, 'cart.max_item_price' === $source );
+			case 'cart.coupons':
+				return array_values( array_map( 'strval', $cart->get_applied_coupons() ) );
 			case 'cart.item_count':
 				return count( $cart->get_cart() );
 			case 'cart.qty':
@@ -258,11 +283,7 @@ final class ContextFactory {
 					$ids[] = $parent_id;
 					break;
 				case 'categories':
-					// A product in a sub-category also counts as being in the parent categories.
-					foreach ( wc_get_product_term_ids( $parent_id, 'product_cat' ) as $term_id ) {
-						$ids[] = $term_id;
-						array_push( $ids, ...get_ancestors( $term_id, 'product_cat', 'taxonomy' ) );
-					}
+					array_push( $ids, ...self::category_ids( $parent_id ) );
 					break;
 				case 'tags':
 					array_push( $ids, ...wc_get_product_term_ids( $parent_id, 'product_tag' ) );
@@ -275,5 +296,68 @@ final class ContextFactory {
 
 		$ids = array_filter( array_map( 'intval', $ids ) );
 		return array_values( array_unique( array_map( 'strval', $ids ) ) );
+	}
+
+	/**
+	 * Categories of a product, including the parents of its categories: a product
+	 * in a sub-category also counts as being in the parent categories.
+	 *
+	 * @param int $product_id Product id (the parent for variations).
+	 * @return list<int>
+	 */
+	private static function category_ids( int $product_id ): array {
+		$ids = [];
+		foreach ( wc_get_product_term_ids( $product_id, 'product_cat' ) as $term_id ) {
+			$ids[] = (int) $term_id;
+			array_push( $ids, ...array_map( 'intval', get_ancestors( (int) $term_id, 'product_cat', 'taxonomy' ) ) );
+		}
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * Subtotal of the cart items in a category (sub-categories included):
+	 * product price excluding tax × quantity, before discounts, each line rounded
+	 * to the store's price decimals like the cart subtotal.
+	 *
+	 * Computed from product prices rather than from the cart totals, so the value is
+	 * current even before WooCommerce calculates totals (tax calculation rules).
+	 *
+	 * @param \WC_Cart $cart    Cart.
+	 * @param int      $term_id Category id.
+	 */
+	private static function category_subtotal( \WC_Cart $cart, int $term_id ): float {
+		$sum = 0.0;
+		foreach ( $cart->get_cart() as $item ) {
+			$product = $item['data'] ?? null;
+			if ( ! $product instanceof \WC_Product ) {
+				continue;
+			}
+			$parent_id = $product->get_parent_id() ? $product->get_parent_id() : $product->get_id();
+			if ( in_array( $term_id, self::category_ids( $parent_id ), true ) ) {
+				$sum += round( (float) wc_get_price_excluding_tax( $product, [ 'qty' => (int) ( $item['quantity'] ?? 1 ) ] ), wc_get_price_decimals() );
+			}
+		}
+		return $sum;
+	}
+
+	/**
+	 * Highest or lowest unit price (excluding tax, rounded to the store's price
+	 * decimals) of the products in the cart; 0 for an empty cart.
+	 *
+	 * @param \WC_Cart $cart    Cart.
+	 * @param bool     $highest Highest (true) or lowest (false).
+	 */
+	private static function item_price( \WC_Cart $cart, bool $highest ): float {
+		$prices = [];
+		foreach ( $cart->get_cart() as $item ) {
+			$product = $item['data'] ?? null;
+			if ( $product instanceof \WC_Product ) {
+				$prices[] = round( (float) wc_get_price_excluding_tax( $product ), wc_get_price_decimals() );
+			}
+		}
+		if ( [] === $prices ) {
+			return 0.0;
+		}
+		return $highest ? max( $prices ) : min( $prices );
 	}
 }

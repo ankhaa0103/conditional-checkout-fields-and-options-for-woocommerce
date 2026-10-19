@@ -39,7 +39,8 @@ The plugin **does not add fields** and **does not change labels, placeholders or
 - **Payment methods** — offer a gateway only when conditions match, or remove it.
 - **Shipping methods** — the same for a whole method (`flat_rate`) or a single zone rate (`flat_rate:3`). Cached rates can never bypass a rule.
 - **Taxes** — hide the "(includes … tax)" note, make the order VAT exempt, or use another *existing* tax class. Totals are always calculated by WooCommerce.
-- **22 condition sources** — the value of any other checkout field, cart subtotal/total/quantity/weight, products, categories (sub-categories count for their parents), tags, shipping classes, chosen payment and shipping method, guest or role, billing/shipping country/state/postcode, tax state.
+- **Order rules** — minimum and maximum order amounts and more: hold back "Proceed to checkout" (cart, mini cart, Cart Block) or "Place order" (classic checkout, Checkout Block) with your own message, e.g. "Add {remaining} more to order". The server refuses the order whatever the browser sends.
+- **31 condition sources** — the value of any other checkout field; cart subtotal (excl. or incl. tax), total after discounts, discount, shipping cost, tax, order total, the subtotal of any product category, the most expensive and cheapest product price, coupons, quantity and weight; products, categories (sub-categories count for their parents), tags, shipping classes; chosen payment and shipping method; guest or role; billing/shipping country/state/postcode; tax state.
 - **23 operators**, AND inside a group, OR between groups, priorities and a documented conflict policy.
 - **Admin screen** (WooCommerce → Checkout Rules) with live checks: conflicting rules, rules that can remove every payment or shipping method, targets that no longer exist, and what the Checkout Block supports.
 - **Clear outcome when everything is removed** — customers see your message, no order is created, and the admin gets a notice and a log entry.
@@ -116,6 +117,8 @@ The same rule as stored JSON (also the import/export format):
 | `tax_display` | `checkout` | `hide_tax_note` | "(includes … tax)" hidden | — |
 | `tax_calc` | `cart` | `set_vat_exempt` | order is VAT exempt | — |
 | | | `set_tax_class` | cart items use the chosen existing tax class | — |
+| `order` | `order` | `block_checkout` | "Proceed to checkout" and "Place order" held back, message shown, order refused | normal |
+| | | `block_order` | "Place order" held back (checkout only), message shown, order refused | normal |
 
 A rule without conditions always applies.
 
@@ -123,18 +126,38 @@ A rule without conditions always applies.
 
 Some sources cannot be used for some targets, so a rule can never depend on its own result.
 
-| Source | Value | field | payment | shipping | tax |
-|---|---|:-:|:-:|:-:|:-:|
-| `field:<key>` | value of another checkout field | ✓ | ✓ | ✓ | ✓ |
-| `cart.subtotal` | items subtotal before discounts, excl. tax | ✓ | ✓ | ✓ | ✓ |
-| `cart.total` | order total incl. shipping and tax | ✓ | ✓ | — | — |
-| `cart.item_count`, `cart.qty`, `cart.weight` | lines, quantity, weight | ✓ | ✓ | ✓ | ✓ |
-| `cart.products`, `cart.categories`, `cart.tags`, `cart.shipping_classes` | ids in the cart | ✓ | ✓ | ✓ | ✓ |
-| `payment.method` | chosen gateway | ✓ | — | — | ✓ |
-| `shipping.method` | chosen rate and its method | ✓ | ✓ | — | ✓ |
-| `customer.is_guest`, `customer.role` | customer | ✓ | ✓ | ✓ | ✓ |
-| `billing.country/state/postcode`, `shipping.country/state/postcode` | address | ✓ | ✓ | ✓ | ✓ |
-| `tax.vat_exempt`, `tax.has_tax` | tax state | ✓ | ✓ | — | — |
+| Source | Value | field | payment | shipping | tax | order |
+|---|---|:-:|:-:|:-:|:-:|:-:|
+| `field:<key>` | value of another checkout field | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `cart.subtotal` | items subtotal before discounts, excl. tax | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `cart.subtotal_incl_tax` | items subtotal before discounts, incl. tax | ✓ | ✓ | ✓ | — | ✓ |
+| `cart.contents_total` | items total after discounts, excl. tax | ✓ | ✓ | ✓ | — | ✓ |
+| `cart.discount_total` | discount amount, excl. tax | ✓ | ✓ | ✓ | — | ✓ |
+| `cart.shipping_total` | shipping cost, excl. tax | ✓ | ✓ | — | — | ✓ |
+| `cart.tax_total` | tax amount | ✓ | ✓ | — | — | ✓ |
+| `cart.total` | order total incl. shipping and tax | ✓ | ✓ | — | — | ✓ |
+| `cart.category_subtotal:<term id>` | subtotal of the items in a category (and its sub-categories), excl. tax, before discounts | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `cart.max_item_price`, `cart.min_item_price` | most expensive / cheapest unit price, excl. tax | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `cart.coupons` | coupon codes applied | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `cart.item_count`, `cart.qty`, `cart.weight` | lines, quantity, weight | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `cart.products`, `cart.categories`, `cart.tags`, `cart.shipping_classes` | ids in the cart | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `payment.method` | chosen gateway | ✓ | — | — | ✓ | ✓ |
+| `shipping.method` | chosen rate and its method | ✓ | ✓ | — | ✓ | ✓ |
+| `customer.is_guest`, `customer.role` | customer | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `billing.country/state/postcode`, `shipping.country/state/postcode` | address | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `tax.vat_exempt`, `tax.has_tax` | tax state | ✓ | ✓ | — | — | ✓ |
+
+Tax calculation rules run before WooCommerce calculates totals, so they cannot read amounts that come out of that calculation. The category subtotal and the product prices are computed from product prices, so every rule can use them.
+
+### Order rule messages
+
+| Placeholder | Value |
+|---|---|
+| `{min}` / `{remaining}` | limit of the first "less than" condition of the matching group / how much is missing |
+| `{max}` / `{excess}` | limit of the first "greater than" condition / how much is over |
+| `{current}` | current value of the first number condition |
+
+Money is shown in the store currency, the cart weight with its unit. A rule without a message uses the default message from the *Settings* tab.
 
 ### Operators
 
@@ -153,7 +176,8 @@ Text comparison ignores case and surrounding spaces. A value that is not a numbe
 1. When several rules for the same target match, the **lowest priority number wins**.
 2. On a tie, the **restrictive action wins**: `hide` over `show`/`require`, `disable` over `enable`.
 3. If `show`/`enable` rules exist for a target and none matches, the target is hidden/removed.
-4. If rules remove **every** payment method or **every** shipping rate, checkout stops with your message (*Settings* tab), no order is created, and the admin sees a notice; the event is logged with source `ccfo` in *WooCommerce → Status → Logs*.
+4. Order rules have no conflicts: every matching rule blocks; the priority only orders the messages.
+5. If rules remove **every** payment method or **every** shipping rate, checkout stops with your message (*Settings* tab), no order is created, and the admin sees a notice; the event is logged with source `ccfo` in *WooCommerce → Status → Logs*.
 
 The admin screen warns about conflicting rules and rules that can remove every method before you save.
 
@@ -167,6 +191,8 @@ The admin screen warns about conflicting rules and rules that can remove every m
 | Shipping `enable` / `disable` | ✅ | ✅ |
 | `hide_tax_note` | ✅ | ✅ |
 | `set_vat_exempt`, `set_tax_class` | ✅ | ✅ (the chosen payment method is sent to the server) |
+| Order `block_checkout` | ✅ cart, mini cart and checkout buttons + message | ✅ Cart Block and Checkout Block buttons + notice |
+| Order `block_order` | ✅ "Place order" + message | ✅ "Place order" + notice |
 
 Fields added by other plugins with `woocommerce_register_additional_checkout_field()` are listed in the admin as managed by their own plugin. Details: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
 
@@ -265,10 +291,11 @@ Integration and E2E tests need test data on the local site: `php tools/wp-cli.ph
 | Layer | What it covers |
 |---|---|
 | **Parity matrix** (`tests/unit/MatrixTest.php`, `tests/js/matrix.test.js`) | 4,290 operator cases, 504 action combinations (priorities, ties, disabled rules, original required state) and 2,955 AND/OR shapes; PHP = JS = an oracle written from the spec |
-| **Schema matrix** (`tests/unit/SchemaMatrixTest.php`) | all 2,530 target × source × operator combinations, every action on every target, 400+ invalid values — expected tables copied from the spec |
-| **Integration** (`tests/integration/`) | every source in every request mode, every target × action through the real WooCommerce hooks, classic and Store API refusals of removed methods, shipping rate cache, taxes classic = block, REST API, settings, uninstall |
-| **JS runtime** (`tests/js/runtime.test.js`) | the classic checkout script in a DOM: visibility, required markup, values of every client source |
-| **E2E** (`tests/e2e/`) | real browser: classic checkout, Checkout Block, admin screen; `@smoke` is a representative subset |
+| **Schema matrix** (`tests/unit/SchemaMatrixTest.php`) | all 4,278 target × source × operator combinations, every action on every target, 400+ invalid values — expected tables copied from the spec |
+| **Order rules** (`tests/unit/OrderRulesTest.php`, `MessagesTest.php`) | message validation, placeholders, linter; "never matches" checked against brute force for 1,140 condition groups |
+| **Integration** (`tests/integration/`) | every source in every request mode (amounts against `WC_Cart`), every target × action through the real WooCommerce hooks, order rules on the cart, mini cart, checkout and a real Store API checkout, classic and Store API refusals of removed methods, shipping rate cache, taxes classic = block, REST API, settings, uninstall |
+| **JS runtime** (`tests/js/runtime.test.js`, `order-guard.test.js`) | the classic checkout script in a DOM: visibility, required markup, values of every client source; the Cart/Checkout Block order guard |
+| **E2E** (`tests/e2e/`) | real browser: classic cart and checkout, Cart Block, Checkout Block, admin screen; `@smoke` is a representative subset |
 
 ## Project structure
 
@@ -280,6 +307,7 @@ src/
   Classic/    Fields, Payments, Shipping, Validation, Assets
   Blocks/     StoreApi, Integration
   Tax/        TaxRules
+  Order/      Restrictions, Messages
   Admin/      Menu, RestController, StoreInfo, Notices
 assets/src/   admin (React), classic, blocks, shared/evaluator.js
 assets/css/   checkout styles

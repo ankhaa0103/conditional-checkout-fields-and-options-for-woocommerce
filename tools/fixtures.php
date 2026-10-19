@@ -67,7 +67,29 @@ if ( 'teardown' === $ccfo_action ) {
 	return;
 }
 
+/**
+ * Cart Block page (added in 1.1; also added to fixtures made by older versions).
+ *
+ * @return int Page id.
+ */
+$ccfo_cart_block_page = static function (): int {
+	return (int) wp_insert_post(
+		[
+			'post_title'   => 'CCFO Block Cart',
+			'post_name'    => 'ccfo-block-cart',
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			// WooCommerce's own default Cart Block markup.
+			'post_content' => ( new ReflectionMethod( 'WC_Install', 'get_cart_block_content' ) )->invoke( null ),
+		]
+	);
+};
+
 if ( $ccfo_state ) {
+	if ( empty( $ccfo_state['pages']['block_cart'] ) || ! get_post( $ccfo_state['pages']['block_cart'] ) ) {
+		$ccfo_state['pages']['block_cart'] = $ccfo_cart_block_page();
+		update_option( 'ccfo_test_fixtures', $ccfo_state, false );
+	}
 	echo wp_json_encode( $ccfo_state ), "\n";
 	return;
 }
@@ -187,6 +209,7 @@ $ccfo_state['pages']['block_checkout'] = wp_insert_post(
 		'post_content' => ( new ReflectionMethod( 'WC_Install', 'get_checkout_block_content' ) )->invoke( null ),
 	]
 );
+$ccfo_state['pages']['block_cart']       = $ccfo_cart_block_page();
 $ccfo_state['pages']['classic_checkout'] = (int) get_option( 'woocommerce_checkout_page_id' );
 
 // Test-only field registered the way third-party plugins do.

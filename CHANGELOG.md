@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 — 2026-10-20
+
+Order rules and amount conditions (SPEC §13).
+
+- **Order rules** (new target `order`): `block_checkout` holds back "Proceed to checkout" (classic cart, mini cart, Cart Block) and "Place order"; `block_order` holds back "Place order" only. Messages per rule with `{min}`, `{max}`, `{remaining}`, `{excess}`, `{current}`; a default message in Settings. The classic checkout refuses the order in `woocommerce_after_checkout_validation`, the Store API with `ccfo_order_blocked` (400). Express payment buttons are not shown while the order is blocked.
+- **New condition sources:** `cart.subtotal_incl_tax`, `cart.contents_total`, `cart.discount_total`, `cart.shipping_total`, `cart.tax_total`, `cart.max_item_price`, `cart.min_item_price`, `cart.coupons` and `cart.category_subtotal:<term id>` (sub-categories included, variations by their parent). Every existing source can be used in order rules.
+- **Linter:** order rules without conditions, condition groups whose number conditions contradict each other (checked for every rule), unknown or empty placeholders, deleted categories; condition fields that no longer exist are now also reported for tax and order rules.
+- **Checkout Block:** order rules that read the payment method update at once from per-method messages (`orderBlockedByMethod`), without a server round trip. Tax rules that read the payment method: with nothing chosen yet the server assumes the first available method, as the block does, so nothing is sent while the page loads; a change is sent after a 3.5 s pause in address input. The cart response used to overwrite address input WooCommerce had not sent yet (found by E2E; the test fails 3/3 without the pause).
+- **Store API:** field and order checks run only when the order is placed (`POST`), not for draft updates (PUT/PATCH).
+- Tests: unit `OrderRulesTest`, `MessagesTest` (brute-force check of contradicting groups); integration `AmountSourcesTest`, `OrderRestrictionsTest` (incl. a real Store API checkout); Jest `order-guard.test.js`; E2E `order.spec.js` (classic cart/checkout, Cart Block, Checkout Block, admin). Fixtures add a Cart Block page.
+
 ## 1.0.0 — 2026-10-18
 
 First public release on WordPress.org.
