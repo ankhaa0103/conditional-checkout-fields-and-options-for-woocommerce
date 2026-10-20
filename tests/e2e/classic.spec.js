@@ -72,9 +72,7 @@ test(
 
 		await page.locator( '#payment_method_cod' ).check();
 		await h.placeClassicOrder( page );
-		await expect( page.locator( '.woocommerce-error' ) ).toContainText(
-			'VAT number'
-		);
+		await expect( h.errorNotices( page ) ).toContainText( 'VAT number' );
 
 		await page.fill( '#billing_vat', 'MN1234567' );
 		await h.placeClassicOrder( page );
@@ -182,7 +180,7 @@ test( 'A7: customer sees the configured message when every payment method is rem
 
 	await h.fillClassicBilling( page );
 	await h.placeClassicOrder( page );
-	await expect( page.locator( '.woocommerce-error' ) ).toContainText(
+	await expect( h.errorNotices( page ) ).toContainText(
 		'No payment method is available'
 	);
 	h.deleteOption( 'ccfo_blocked_log' );

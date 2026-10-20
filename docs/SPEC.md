@@ -174,12 +174,12 @@ Classic = C, Block = B. Сценари бүр хоёр урсгалд ажилл
 
 | # | Боломж | Эрэмбэ | Хүлээн авах шалгуур |
 |---|---|---|---|
-| 3.1 | `block_checkout` (Classic) | P0 | Нөхцөл биелвэл cart-ийн "Proceed to checkout" ба express payment товчны оронд идэвхгүй товч + мессеж, mini cart-ийн "Checkout" товч идэвхгүй + мессеж. Checkout хуудсанд "Place order" идэвхгүй. Cart-ийг шинэчлэхэд (тоо, хүргэлт, купон) товч шууд зөв төлөвт орно. |
-| 3.2 | `block_order` (Classic) | P0 | Checkout-ийн "Place order" товч `disabled`, дээр нь мессеж. Талбар, төлбөр, хүргэлт солигдох бүрт (`update_order_review`) төлөв шинэчлэгдэнэ. Гараар POST илгээвэл `woocommerce_after_checkout_validation` алдаа өгч, захиалга үүсэхгүй. |
+| 3.1 | `block_checkout` (Classic) | P0 | Нөхцөл биелвэл cart-ийн "Proceed to checkout" ба express payment товчны оронд идэвхгүй товч, mini cart-ийн "Checkout" товч идэвхгүй, түүний дээр богино мессеж. Мессеж cart хуудасны **дээд хэсэгт** WooCommerce-ийн мэдэгдлийн дараа (`woocommerce-info`) гарна (1.1.1). Checkout хуудсанд "Place order" идэвхгүй. Cart-ийг шинэчлэхэд (тоо, хүргэлт, купон) товч ба мессеж шууд зөв төлөвт орно. |
+| 3.2 | `block_order` (Classic) | P0 | Checkout-ийн "Place order" товч `disabled`; мессеж checkout хуудасны **дээд хэсэгт** (1.1.1), шинээр гарвал хуудас тийш гүйлгэгдэнэ. Талбар, төлбөр, хүргэлт солигдох бүрт (`update_order_review`) төлөв шинэчлэгдэнэ. Гараар POST илгээвэл `woocommerce_after_checkout_validation` алдаа өгч, захиалга үүсэхгүй. |
 | 3.3 | Block (Cart/Checkout Block) | P0 | Store API cart-ийн `extensions.ccfo.checkoutBlocked` / `orderBlocked` мессежүүд. Cart Block: notice + "Proceed to checkout" хориглогдоно. Checkout Block: notice + "Place order" хориглогдоно (validation store). Store API checkout `ccfo_order_blocked` (400)-оор татгалзана. |
 | 3.4 | Шинэ дүнгийн source-ууд (§4) | P0 | PHP-ийн утга WooCommerce-ийн `WC_Cart` getter-тэй тэнцүү (ангиллын дэд дүн ба барааны үнэ: `wc_get_price_excluding_tax()`). Request горим бүрт тест. |
 | 3.5 | Ангиллын дэд дүн | P0 | Дэд ангиллын бараа эцэг ангилалд тооцогдоно, variation-ий ангилал эцэг бүтээгдэхүүнээс. Admin-д ангилал бүрээр сонгоно. |
-| 3.6 | Admin | P0 | "Order" target, хоёр action, мессеж засварлагч (placeholder-ийн тайлбартай), Settings-д анхдагч мессеж. |
+| 3.6 | Admin | P0 | "Order" target, хоёр action, мессеж засварлагч (placeholder-ийн тайлбартай), Settings-д анхдагч мессеж. 1.1.1: талбарын утга ба ангиллын дэд дүнг хоёр алхмаар сонгоно (нөхцөлийн төрөл → талбар/ангилал); хайлтын жагсаалт агуулгын дээгүүр хөвж гарна. |
 | 3.7 | Linter | P0 | Нөхцөлгүй order дүрэм (бүх захиалгыг хориглоно), хоорондоо зөрчилдсөн тоон нөхцөлтэй group (хэзээ ч биелэхгүй), утгагүй эсвэл үл мэдэгдэх placeholder, устсан ангилал. |
 
 ### 13.2 Хязгаарлалт

@@ -167,7 +167,13 @@ final class OrderRestrictionsTest extends IntegrationTestCase {
 		$this->mode( ContextFactory::RENDER );
 		$cart = self::render( 'woocommerce_proceed_to_checkout' );
 		$this->assertSame( $blocks_cart, str_contains( $cart, 'ccfo-checkout-disabled' ), 'cart button disabled' );
-		$this->assertSame( $blocks_cart, str_contains( $cart, 'Rule says no.' ), 'cart message' );
+		// The totals carry the current messages as data; the visible message is at the page top.
+		$this->assertStringContainsString( 'class="ccfo-order-notices-data"', $cart );
+		$this->assertSame( $blocks_cart, str_contains( $cart, '&quot;Rule says no.&quot;' ), 'cart data' );
+		$this->assertStringNotContainsString( 'woocommerce-info', $cart, 'no message next to the button' );
+		$top = self::render( 'woocommerce_before_cart' );
+		$this->assertStringContainsString( '<div class="ccfo-order-notices" aria-live="polite">', $top );
+		$this->assertSame( $blocks_cart, str_contains( $top, '>Rule says no.</div>' ), 'cart message at the top' );
 		$this->assertSame( ! $blocks_cart, str_contains( $cart, 'href="' . esc_url( wc_get_checkout_url() ) . '"' ), 'cart link to checkout' );
 		// The removed WooCommerce callbacks are back for the next render.
 		$this->assertSame( 20, has_action( 'woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout' ) );
@@ -177,14 +183,21 @@ final class OrderRestrictionsTest extends IntegrationTestCase {
 		$mini = self::render( 'woocommerce_widget_shopping_cart_buttons' );
 		$this->assertSame( $blocks_cart, str_contains( $mini, 'ccfo-checkout-disabled' ), 'mini cart button disabled' );
 		$this->assertSame( $blocks_cart, str_contains( $mini, 'Rule says no.' ), 'mini cart message' );
+		if ( $blocks_cart ) {
+			$this->assertLessThan( strpos( $mini, 'ccfo-checkout-disabled' ), strpos( $mini, 'Rule says no.' ), 'mini cart message above the button' );
+			$this->assertStringContainsString( '<span class="woocommerce-info ccfo-order-blocked ccfo-order-blocked--mini"', $mini );
+		}
 		$this->assertSame( ! $blocks_cart, str_contains( $mini, '<a href="' . esc_url( wc_get_checkout_url() ) . '" class="button checkout' ), 'mini cart checkout link' );
 		$this->assertNotFalse( has_action( 'woocommerce_widget_shopping_cart_buttons', 'woocommerce_widget_shopping_cart_proceed_to_checkout' ) );
 		$this->assertFalse( has_action( 'woocommerce_widget_shopping_cart_buttons', [ Plugin::instance()->restrictions, 'mini_cart_disabled_button' ] ) );
 
 		// Classic checkout, as refreshed by update_order_review.
 		$this->mode( ContextFactory::AJAX, [ 'payment_method' => 'bacs' ] );
-		$messages = self::render( 'woocommerce_review_order_before_submit' );
-		$this->assertSame( $blocks_checkout, str_contains( $messages, 'Rule says no.' ), 'checkout message' );
+		$data = self::render( 'woocommerce_review_order_before_submit' );
+		$this->assertSame( $blocks_checkout, str_contains( $data, '&quot;Rule says no.&quot;' ), 'checkout data' );
+		$this->assertStringNotContainsString( 'woocommerce-info', $data, 'no message above Place order' );
+		$top = self::render( 'woocommerce_before_checkout_form' );
+		$this->assertSame( $blocks_checkout, str_contains( $top, '>Rule says no.</div>' ), 'checkout message at the top' );
 		$button = apply_filters( 'woocommerce_order_button_html', '<button type="submit" class="button alt" name="woocommerce_checkout_place_order" id="place_order">Place order</button>' ); // phpcs:ignore WooCommerce.Commenting.CommentHooks.MissingHookComment -- WooCommerce's own filter.
 		$this->assertSame( $blocks_checkout, str_contains( $button, '<button disabled aria-disabled="true"' ), 'place order disabled' );
 

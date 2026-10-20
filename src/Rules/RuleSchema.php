@@ -276,7 +276,15 @@ final class RuleSchema {
 		$source     = isset( $raw['source'] ) && is_string( $raw['source'] ) ? $raw['source'] : '';
 		$definition = Definitions::source_definition( $source );
 		if ( null === $definition ) {
-			$this->error( $index, $id, "$path.source", __( 'Unknown condition source.', 'conditional-checkout-fields-and-options-for-woocommerce' ) );
+			// Fields and categories are chosen in a second step in the admin.
+			if ( str_starts_with( $source, 'field:' ) ) {
+				$message = __( 'Choose a checkout field.', 'conditional-checkout-fields-and-options-for-woocommerce' );
+			} elseif ( str_starts_with( $source, 'cart.category_subtotal' ) ) {
+				$message = __( 'Choose a product category.', 'conditional-checkout-fields-and-options-for-woocommerce' );
+			} else {
+				$message = __( 'Unknown condition source.', 'conditional-checkout-fields-and-options-for-woocommerce' );
+			}
+			$this->error( $index, $id, "$path.source", $message );
 			return null;
 		}
 

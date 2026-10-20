@@ -451,7 +451,21 @@ async function placeBlockOrder( page ) {
 	);
 }
 
+/**
+ * Error notices of the classic checkout. Classic themes print `.woocommerce-error`;
+ * in block themes (e.g. Twenty Twenty-Five) WooCommerce prints block style notices.
+ *
+ * @param {import('@playwright/test').Page} page Page.
+ * @return {import('@playwright/test').Locator} Notices.
+ */
+function errorNotices( page ) {
+	return page.locator(
+		'.woocommerce-error, .wc-block-components-notice-banner.is-error'
+	);
+}
+
 module.exports = {
+	errorNotices,
 	openBlockCheckout,
 	fillBlockAddress,
 	placeBlockOrder,

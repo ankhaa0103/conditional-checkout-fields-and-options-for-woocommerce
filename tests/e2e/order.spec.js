@@ -44,6 +44,26 @@ const codLimitRule = () =>
 	);
 
 const cartArea = ( page ) => page.locator( '.wc-proceed-to-checkout' );
+/**
+ * Messages at the top of the page, after the WooCommerce notices.
+ *
+ * @param {import('@playwright/test').Page} page Page.
+ * @return {import('@playwright/test').Locator} Notices.
+ */
+const topNotices = ( page ) =>
+	page.locator( '.ccfo-order-notices .ccfo-order-notice' );
+
+/**
+ * The element is above the other one on the page.
+ *
+ * @param {import('@playwright/test').Locator} upper Upper element.
+ * @param {import('@playwright/test').Locator} lower Lower element.
+ */
+async function expectAbove( upper, lower ) {
+	const a = await upper.boundingBox();
+	const b = await lower.boundingBox();
+	expect( a.y + a.height ).toBeLessThanOrEqual( b.y );
+}
 
 /**
  * Change the quantity of the first cart line on the classic cart page. Woodmart
@@ -93,14 +113,24 @@ test(
 		await expect(
 			cartArea( page ).locator( '.ccfo-checkout-disabled' )
 		).toBeDisabled();
+		// The message is at the top of the page, not next to the button.
+		await expect( topNotices( page ) ).toHaveText(
+			/Add .*100,000 more to order \(minimum .*400,000\)\./
+		);
+		await expect( topNotices( page ) ).toHaveClass( /woocommerce-info/ );
+		await expectAbove(
+			topNotices( page ),
+			page.locator( '.woocommerce-cart-form' )
+		);
 		await expect(
-			cartArea( page ).locator( '.ccfo-order-blocked' )
-		).toHaveText( /Add .*100,000 more to order \(minimum .*400,000\)\./ );
+			cartArea( page ).locator( '.woocommerce-info' )
+		).toHaveCount( 0 );
 		await expect(
 			cartArea( page ).locator( 'a.checkout-button' )
 		).toHaveCount( 0 );
+		// Mini cart: short message above the disabled button.
 		expect( await miniCart( page ) ).toMatch(
-			/ccfo-checkout-disabled[\s\S]*Add .*100,000 more/
+			/Add .*100,000 more[\s\S]*ccfo-checkout-disabled/
 		);
 
 		// 600 000: the minimum is reached; the cart refresh brings the button back.
@@ -108,9 +138,15 @@ test(
 		await expect(
 			cartArea( page ).locator( 'a.checkout-button' )
 		).toBeVisible();
+		await expect( topNotices( page ) ).toHaveCount( 0 );
+		// Back below the minimum: the message comes back at the top.
+		await setClassicCartQty( page, 1 );
+		await expect( topNotices( page ) ).toHaveCount( 1 );
 		await expect(
-			cartArea( page ).locator( '.ccfo-order-blocked' )
-		).toHaveCount( 0 );
+			cartArea( page ).locator( '.ccfo-checkout-disabled' )
+		).toBeDisabled();
+		await setClassicCartQty( page, 2 );
+		await expect( topNotices( page ) ).toHaveCount( 0 );
 		const mini = await miniCart( page );
 		expect( mini ).not.toContain( 'ccfo-checkout-disabled' );
 		expect( mini ).toContain( 'checkout wc-forward' );
@@ -129,9 +165,16 @@ test(
 		await page.locator( '#payment_method_cod' ).check();
 		await h.waitForCheckoutIdle( page );
 		await expect( page.locator( '#place_order' ) ).toBeDisabled();
+		await expect( topNotices( page ) ).toHaveText(
+			/Cash on delivery only up to .*250,000\./
+		);
+		await expectAbove(
+			topNotices( page ),
+			page.locator( 'form.checkout' )
+		);
 		await expect(
-			page.locator( '#payment .ccfo-order-blocked' )
-		).toHaveText( /Cash on delivery only up to .*250,000\./ );
+			page.locator( '#payment .woocommerce-info' )
+		).toHaveCount( 0 );
 
 		// A forced submit (as if the button were enabled again) is refused by the server.
 		await page.evaluate( () =>
@@ -146,9 +189,18 @@ test(
 		await page.locator( '#payment_method_bacs' ).check();
 		await h.waitForCheckoutIdle( page );
 		await expect( page.locator( '#place_order' ) ).toBeEnabled();
-		await expect(
-			page.locator( '#payment .ccfo-order-blocked' )
-		).toHaveCount( 0 );
+		await expect( topNotices( page ) ).toHaveCount( 0 );
+
+		// Choosing cash on delivery again near the bottom of the page brings the new
+		// message into view.
+		await page.locator( '#payment_method_cod' ).scrollIntoViewIfNeeded();
+		await page.locator( '#payment_method_cod' ).check();
+		await h.waitForCheckoutIdle( page );
+		await expect( topNotices( page ) ).toHaveCount( 1 );
+		await expect( topNotices( page ) ).toBeInViewport( { timeout: 5000 } );
+		await page.locator( '#payment_method_bacs' ).check();
+		await h.waitForCheckoutIdle( page );
+		await expect( topNotices( page ) ).toHaveCount( 0 );
 		// The refused attempt's notice is still on the page, so wait for the order page.
 		await page.locator( '#place_order' ).click();
 		await page.waitForURL( /order-received/, { timeout: 45000 } );
@@ -225,7 +277,10 @@ test(
 
 		// 600 000: released.
 		await page
-			.locator( '.wc-block-components-quantity-selector__button--plus' )
+			// Block themes also have a Mini-Cart block with its own buttons.
+			.locator(
+				'.wp-block-woocommerce-cart .wc-block-components-quantity-selector__button--plus'
+			)
 			.first()
 			.click();
 		await expect( notice ).toHaveCount( 0, { timeout: 30000 } );
@@ -346,13 +401,17 @@ test(
 			.fill( 'Add {remaining} of heavy goods.' );
 
 		await page.getByRole( 'button', { name: '+ Add condition' } ).click();
+		// Two steps: the kind of condition, then the category.
 		const source = page.getByRole( 'combobox', { name: 'Condition' } );
-		await source.fill( 'Subtotal of category "CCFO Heavy"' );
+		await source.fill( 'Subtotal of a product category' );
 		await page
-			.getByRole( 'option', {
-				name: /Subtotal of category "CCFO Heavy"/,
-			} )
+			.getByRole( 'option', { name: /Subtotal of a product category/ } )
 			.click();
+		const category = page.getByRole( 'combobox', {
+			name: 'Product category',
+		} );
+		await category.fill( 'CCFO Heavy' );
+		await page.getByRole( 'option', { name: 'CCFO Heavy' } ).click();
 		await page.getByLabel( 'Operator' ).selectOption( 'lt' );
 		await page.getByLabel( 'Value', { exact: true } ).fill( '400000' );
 

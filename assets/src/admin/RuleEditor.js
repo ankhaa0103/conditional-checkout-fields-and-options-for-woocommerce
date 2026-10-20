@@ -24,9 +24,21 @@ import { fieldOptions, targetKeyOptions } from './options';
 import ValueInput from './ValueInput';
 
 const CATEGORY_PREFIX = 'cart.category_subtotal:';
+const FIELD_PREFIX = 'field:';
+
+/**
+ * Sources chosen in two steps: the kind in the condition list, then the field or
+ * the category. Stored as one id, e.g. "field:billing_company".
+ *
+ * @param {string} source Source id.
+ * @return {string|null} Prefix of the family, or null.
+ */
+const familyOf = ( source ) =>
+	[ FIELD_PREFIX, CATEGORY_PREFIX ].find( ( p ) => source.startsWith( p ) ) ||
+	null;
 
 const sourceType = ( source, definitions ) => {
-	if ( source.startsWith( 'field:' ) ) {
+	if ( source.startsWith( FIELD_PREFIX ) ) {
 		return definitions.fieldSource;
 	}
 	if ( source.startsWith( CATEGORY_PREFIX ) ) {
@@ -39,13 +51,13 @@ const ORDER_ACTIONS = [ 'block_checkout', 'block_order' ];
 
 /**
  * Sources allowed for the target, as grouped select options.
+ * Fields and categories are chosen in a second step (familyKeyOptions).
  *
  * @param {Object} rule        Rule.
  * @param {Object} definitions Definitions.
- * @param {Object} catalog     Catalog.
  * @return {Array} Options.
  */
-function sourceOptions( rule, definitions, catalog ) {
+function sourceOptions( rule, definitions ) {
 	const options = [];
 	const allowed = Object.entries( definitions.sources ).filter( ( [ , d ] ) =>
 		d.targets.includes( rule.target.type )
@@ -65,41 +77,46 @@ function sourceOptions( rule, definitions, catalog ) {
 	}
 
 	if ( definitions.categorySource?.targets.includes( rule.target.type ) ) {
-		( catalog.categories || [] ).forEach( ( c ) =>
-			options.push( {
-				value: CATEGORY_PREFIX + c.id,
-				label: sprintf(
-					/* translators: %s: product category name */ __(
-						'Cart: Subtotal of category "%s" (before discounts, excl. tax)',
-						'conditional-checkout-fields-and-options-for-woocommerce'
-					),
-					c.label
-				),
-			} )
-		);
+		options.push( {
+			value: CATEGORY_PREFIX,
+			label: __(
+				'Cart: Subtotal of a product category… (before discounts, excl. tax)',
+				'conditional-checkout-fields-and-options-for-woocommerce'
+			),
+		} );
 	}
 
-	fieldOptions( catalog )
-		.filter(
-			( o ) =>
-				! (
-					rule.target.type === 'field' && o.value === rule.target.key
-				)
-		)
-		.forEach( ( o ) =>
-			options.push( {
-				value: `field:${ o.value }`,
-				label: sprintf(
-					/* translators: %s: field description */ __(
-						'Field value: %s',
-						'conditional-checkout-fields-and-options-for-woocommerce'
-					),
-					o.label
-				),
-			} )
-		);
+	options.push( {
+		value: FIELD_PREFIX,
+		label: __(
+			'Field value: a checkout field…',
+			'conditional-checkout-fields-and-options-for-woocommerce'
+		),
+	} );
 
 	return options;
+}
+
+/**
+ * Second step: the field or category of a two-step source.
+ *
+ * @param {string} family  Prefix of the family.
+ * @param {Object} rule    Rule.
+ * @param {Object} catalog Catalog.
+ * @return {Array} Options.
+ */
+function familyKeyOptions( family, rule, catalog ) {
+	if ( family === CATEGORY_PREFIX ) {
+		return ( catalog.categories || [] ).map( ( c ) => ( {
+			value: String( c.id ),
+			label: c.label,
+		} ) );
+	}
+	// A field rule cannot depend on its own field.
+	return fieldOptions( catalog ).filter(
+		( o ) =>
+			! ( rule.target.type === 'field' && o.value === rule.target.key )
+	);
 }
 
 function newCondition( source, definitions ) {
@@ -130,6 +147,8 @@ function ConditionRow( {
 	const def = sourceType( condition.source, definitions );
 	const operators = def ? definitions.operators[ def.type ] : [];
 	const shape = definitions.operatorValues[ condition.operator ] || 'none';
+	const family = familyOf( condition.source );
+	const key = family ? condition.source.slice( family.length ) : '';
 
 	return (
 		<Flex className="ccfo-condition" align="flex-start" wrap>
@@ -142,14 +161,59 @@ function ConditionRow( {
 						'conditional-checkout-fields-and-options-for-woocommerce'
 					) }
 					hideLabelFromVision
-					value={ condition.source }
-					options={ sourceOptions( rule, definitions, catalog ) }
-					onChange={ ( source ) =>
-						source &&
-						onChange( newCondition( source, definitions ) )
-					}
+					value={ family || condition.source }
+					options={ sourceOptions( rule, definitions ) }
+					onChange={ ( source ) => {
+						// Picking the same kind again keeps the chosen field or category.
+						if (
+							! source ||
+							source === ( family || condition.source )
+						) {
+							return;
+						}
+						onChange( newCondition( source, definitions ) );
+					} }
 				/>
 			</FlexBlock>
+			{ family && (
+				<FlexBlock className="ccfo-condition__key">
+					<ComboboxControl
+						__next40pxDefaultSize
+						__nextHasNoMarginBottom
+						label={
+							family === CATEGORY_PREFIX
+								? __(
+										'Product category',
+										'conditional-checkout-fields-and-options-for-woocommerce'
+								  )
+								: __(
+										'Checkout field',
+										'conditional-checkout-fields-and-options-for-woocommerce'
+								  )
+						}
+						hideLabelFromVision
+						placeholder={
+							family === CATEGORY_PREFIX
+								? __(
+										'Choose a category',
+										'conditional-checkout-fields-and-options-for-woocommerce'
+								  )
+								: __(
+										'Choose a field',
+										'conditional-checkout-fields-and-options-for-woocommerce'
+								  )
+						}
+						value={ key }
+						options={ familyKeyOptions( family, rule, catalog ) }
+						onChange={ ( next ) =>
+							onChange( {
+								...condition,
+								source: family + ( next || '' ),
+							} )
+						}
+					/>
+				</FlexBlock>
+			) }
 			<FlexItem className="ccfo-condition__operator">
 				<SelectControl
 					__next40pxDefaultSize
@@ -240,7 +304,7 @@ export default function RuleEditor( { rule, definitions, catalog, onChange } ) {
 
 	return (
 		<div className="ccfo-editor">
-			<Flex align="flex-end" wrap>
+			<Flex align="flex-start" wrap className="ccfo-editor__head">
 				<FlexBlock>
 					<TextControl
 						__next40pxDefaultSize

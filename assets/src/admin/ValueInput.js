@@ -188,6 +188,11 @@ export default function ValueInput( {
 							'Minimum',
 							'conditional-checkout-fields-and-options-for-woocommerce'
 						) }
+						hideLabelFromVision
+						placeholder={ __(
+							'Min',
+							'conditional-checkout-fields-and-options-for-woocommerce'
+						) }
 						value={ min ?? '' }
 						onChange={ ( v ) => set( 0, v ) }
 					/>
@@ -200,6 +205,11 @@ export default function ValueInput( {
 						step="any"
 						label={ __(
 							'Maximum',
+							'conditional-checkout-fields-and-options-for-woocommerce'
+						) }
+						hideLabelFromVision
+						placeholder={ __(
+							'Max',
 							'conditional-checkout-fields-and-options-for-woocommerce'
 						) }
 						value={ max ?? '' }

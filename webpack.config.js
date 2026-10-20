@@ -1,5 +1,5 @@
 /**
- * Build: three entries, WordPress and WooCommerce packages as externals.
+ * Build: four entries, WordPress and WooCommerce packages as externals.
  */
 const path = require( 'path' );
 const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
@@ -11,6 +11,10 @@ module.exports = {
 		admin: path.resolve( __dirname, 'assets/src/admin/index.js' ),
 		classic: path.resolve( __dirname, 'assets/src/classic/index.js' ),
 		blocks: path.resolve( __dirname, 'assets/src/blocks/index.js' ),
+		'order-notices': path.resolve(
+			__dirname,
+			'assets/src/classic/order-notices.js'
+		),
 	},
 	output: {
 		...defaultConfig.output,

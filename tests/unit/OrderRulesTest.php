@@ -200,6 +200,32 @@ final class OrderRulesTest extends TestCase {
 		}
 	}
 
+	public function test_two_step_sources_without_their_second_step(): void {
+		$schema = new RuleSchema();
+		foreach ( [
+			'field:'                  => 'Choose a checkout field.',
+			'cart.category_subtotal:' => 'Choose a product category.',
+			'cart.category_subtotal'  => 'Choose a product category.',
+			'cart.nope'               => 'Unknown condition source.',
+		] as $source => $message ) {
+			$raw = self::raw(
+				[
+					'groups' => [
+						[
+							[
+								'source'   => $source,
+								'operator' => 'not_empty',
+							],
+						],
+					],
+				]
+			);
+			$this->assertSame( [], $schema->validate( [ $raw ] ), $source );
+			$this->assertSame( $message, $schema->errors()[0]['message'], $source );
+			$this->assertSame( 'groups.0.0.source', $schema->errors()[0]['path'], $source );
+		}
+	}
+
 	public function test_coupon_codes_are_a_list(): void {
 		$schema = new RuleSchema();
 		$raw    = self::raw(

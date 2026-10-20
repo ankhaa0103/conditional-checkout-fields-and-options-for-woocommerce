@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 — 2026-10-20
+
+- **Messages at the top of the page:** order rule messages are shown after the WooCommerce notices at the top of the classic cart and checkout pages (`.ccfo-order-notices`, `woocommerce-info`), not next to the buttons. The refreshed parts of the page carry the current messages as data and `build/order-notices.js` keeps the top up to date (checkout refresh, cart update, shipping change); new messages are scrolled into view. The mini cart shows its short message above the disabled button.
+- **Rule editor:** checkout fields and product categories are chosen in two steps (kind of condition, then the field or category); stored rules are unchanged. The server explains a missing second step ("Choose a checkout field." / "Choose a product category.").
+- **Rule editor:** search lists float over the form instead of pushing it down and show more entries; the value input has no visible label or how-to text, so condition rows line up; "Rule name" and "Priority" start on the same line; range inputs use Min/Max placeholders.
+- Block themes (Twenty Twenty-Five): the disabled cart and mini cart buttons get the theme's button class (`wc_wp_theme_get_element_class_name()`), like WooCommerce's own buttons; they were unstyled before.
+- Tests: unit 134, integration 112, Jest 109; full E2E 41/41 on Woodmart and on Twenty Twenty-Five (E2E notice and Cart Block selectors no longer depend on the theme). WordPress.org screenshots taken on Twenty Twenty-Five.
+
 ## 1.1.0 — 2026-10-20
 
 Order rules and amount conditions (SPEC §13).

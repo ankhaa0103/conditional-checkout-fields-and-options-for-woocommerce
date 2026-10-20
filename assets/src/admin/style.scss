@@ -100,3 +100,56 @@
 	margin-top: 24px;
 	z-index: 10;
 }
+
+// Rule cards must not clip the open lists below.
+.ccfo-app .components-card,
+.ccfo-app .components-card__body {
+	overflow: visible;
+}
+
+.ccfo-condition__key {
+	min-width: 220px;
+}
+
+// Condition rows: the value input has no visible label or how-to text, so the
+// row stays on one line with the condition and the operator.
+.ccfo-condition .components-form-token-field__label {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.ccfo-condition .components-form-token-field__help {
+	display: none;
+}
+
+// Search lists float over the content below instead of pushing it down, and show
+// more entries at once.
+.ccfo-app {
+	.components-combobox-control__suggestions-container,
+	.components-form-token-field__input-container {
+		position: relative;
+	}
+
+	.components-form-token-field__suggestions-list {
+		position: absolute;
+		top: 100%;
+		left: -1px;
+		right: -1px;
+		z-index: 30;
+		max-height: min(360px, 50vh);
+		margin: 0;
+		background: #fff;
+		border: 1px solid #949494;
+		border-radius: 0 0 2px 2px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+	}
+
+	.components-form-token-field__suggestion {
+		padding: 6px 12px;
+		min-height: 0;
+	}
+}

@@ -4,7 +4,7 @@ Tags: woocommerce, checkout, conditional fields, payment methods, shipping metho
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -122,9 +122,15 @@ Yes, uninstalling removes the rules and settings. The record of applied rules on
 4. Classic checkout: the VAT number becomes required as soon as a company name is entered.
 5. Classic checkout: bank transfer is offered once the customer enters a company name.
 6. The order screen lists the rules that applied at checkout.
-7. Cart: "Proceed to checkout" is held back until the minimum order amount is reached.
+7. Cart: the message at the top of the page tells how much is missing, and "Proceed to checkout" is held back until the minimum order amount is reached.
 
 == Changelog ==
+
+= 1.1.1 =
+* Order rule messages are shown at the top of the cart and checkout pages, like WooCommerce notices, instead of next to the buttons. The mini cart shows its short message above the disabled button.
+* Rule editor: checkout fields and product categories are chosen in two steps, so the condition list stays short.
+* Rule editor: search lists open over the form instead of pushing it down, and show more entries; condition rows and the rule name line up.
+* Block themes: the disabled checkout buttons use the theme's button style.
 
 = 1.1.0 =
 * New: order rules – block checkout or block placing the order when conditions match, with your own message and the placeholders {min}, {max}, {remaining}, {excess} and {current}. Classic cart, mini cart and checkout, Cart Block and Checkout Block; the order is also refused on the server.
@@ -142,6 +148,9 @@ Yes, uninstalling removes the rules and settings. The record of applied rules on
 * HPOS and Cart and Checkout Blocks compatible.
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Order rule messages at the top of the page and an easier rule editor.
 
 = 1.1.0 =
 Minimum and maximum order amounts, more amount conditions and category subtotals.

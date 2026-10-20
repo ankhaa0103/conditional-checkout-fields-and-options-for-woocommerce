@@ -176,11 +176,28 @@ async function openRules( page ) {
 		h.setRules( [ minimum ] );
 		await h.fillCart( shop, fx, { light: 1 } );
 		await shop.goto( '/cart/', { waitUntil: 'domcontentloaded' } );
-		await shop.locator( '.cart_totals .ccfo-order-blocked' ).waitFor();
-		await shop.waitForTimeout( 800 );
 		await shop
-			.locator( '.cart_totals' )
-			.screenshot( { path: path.join( OUT, 'screenshot-7.png' ) } );
+			.locator( '.ccfo-order-notices .ccfo-order-notice' )
+			.waitFor();
+		await shop.waitForTimeout( 800 );
+		// From the message at the top of the page to the held-back button.
+		const top = await shop.locator( '.ccfo-order-notices' ).boundingBox();
+		const totals = await shop.locator( '.cart_totals' ).boundingBox();
+		const pad = 16;
+		const x = Math.max( 0, Math.min( top.x, totals.x ) - pad );
+		const y = Math.max( 0, top.y - pad );
+		await shop.screenshot( {
+			path: path.join( OUT, 'screenshot-7.png' ),
+			clip: {
+				x,
+				y,
+				width:
+					Math.max( top.x + top.width, totals.x + totals.width ) +
+					pad -
+					x,
+				height: totals.y + totals.height + pad - y,
+			},
+		} );
 
 		// eslint-disable-next-line no-console
 		console.log( 'Screenshots written to', OUT );

@@ -191,8 +191,8 @@ The admin screen warns about conflicting rules and rules that can remove every m
 | Shipping `enable` / `disable` | ✅ | ✅ |
 | `hide_tax_note` | ✅ | ✅ |
 | `set_vat_exempt`, `set_tax_class` | ✅ | ✅ (the chosen payment method is sent to the server) |
-| Order `block_checkout` | ✅ cart, mini cart and checkout buttons + message | ✅ Cart Block and Checkout Block buttons + notice |
-| Order `block_order` | ✅ "Place order" + message | ✅ "Place order" + notice |
+| Order `block_checkout` | ✅ cart, mini cart and checkout buttons; message at the top of the page (mini cart: above its button) | ✅ Cart Block and Checkout Block buttons + notice |
+| Order `block_order` | ✅ "Place order"; message at the top of the page | ✅ "Place order" + notice |
 
 Fields added by other plugins with `woocommerce_register_additional_checkout_field()` are listed in the admin as managed by their own plugin. Details: [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
 

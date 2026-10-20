@@ -136,3 +136,120 @@ test(
 		h.deleteOption( 'ccfo_settings' );
 	}
 );
+
+test(
+	'two-step conditions, lists over the form and aligned rows',
+	{ tag: '@smoke' },
+	async ( { page } ) => {
+		h.setRules( [] );
+		await h.useAdmin( page );
+		await openRules( page );
+		await page.getByRole( 'button', { name: 'Add rule' } ).click();
+		await page
+			.getByLabel( 'Rule name' )
+			.fill( 'Pickup only without company' );
+
+		// "Rule name" and "Priority" start on the same line.
+		const name = await page.getByLabel( 'Rule name' ).boundingBox();
+		const priority = await page.getByLabel( 'Priority' ).boundingBox();
+		expect( Math.abs( name.y - priority.y ) ).toBeLessThan( 2 );
+
+		await page.getByLabel( 'Applies to' ).selectOption( 'shipping' );
+		const method = page.getByRole( 'combobox', {
+			name: 'Shipping method',
+		} );
+		await method.fill( 'Pickup' );
+		await page.getByRole( 'option', { name: /CCFO Pickup/ } ).click();
+		await page.getByLabel( 'Action' ).selectOption( 'disable' );
+		await page.getByRole( 'button', { name: '+ Add condition' } ).click();
+
+		// The condition list holds one entry for all fields and one for all categories.
+		const source = page.getByRole( 'combobox', { name: 'Condition' } );
+		const addAnd = page.getByRole( 'button', { name: '+ AND condition' } );
+		const before = await addAnd.boundingBox();
+		await source.click();
+		await source.fill( '' );
+		const options = page
+			.locator( '.ccfo-condition__source' )
+			.getByRole( 'option' );
+		await expect( options.first() ).toBeVisible();
+		const labels = await options.allInnerTexts();
+		expect(
+			labels.filter( ( l ) => l.startsWith( 'Field value' ) )
+		).toEqual( [ 'Field value: a checkout field…' ] );
+		expect(
+			labels.filter( ( l ) =>
+				/Subtotal of (a )?(product )?category/.test( l )
+			)
+		).toHaveLength( 1 );
+
+		// The open list floats over the form: the next row does not move, and many
+		// entries are visible at once.
+		const after = await addAnd.boundingBox();
+		expect( after.y ).toBe( before.y );
+		const list = await page
+			.locator( '.components-form-token-field__suggestions-list' )
+			.first()
+			.boundingBox();
+		expect( list.height ).toBeGreaterThan( 250 );
+
+		await source.fill( 'a checkout field' );
+		await page
+			.getByRole( 'option', { name: 'Field value: a checkout field…' } )
+			.click();
+		const field = page.getByRole( 'combobox', { name: 'Checkout field' } );
+		await field.fill( 'billing_company' );
+		await page
+			.getByRole( 'option', { name: /\(billing_company\)/ } )
+			.click();
+		await page.getByLabel( 'Operator' ).selectOption( 'in' );
+
+		// The value input is on the same line as the condition (no visible label or how-to).
+		const row = page.locator( '.ccfo-condition' ).first();
+		const sourceBox = await row
+			.locator(
+				'.ccfo-condition__source .components-combobox-control__suggestions-container'
+			)
+			.boundingBox();
+		const valueBox = await row
+			.locator(
+				'.ccfo-condition__value .components-form-token-field__input-container'
+			)
+			.boundingBox();
+		expect( Math.abs( sourceBox.y - valueBox.y ) ).toBeLessThan( 3 );
+		await expect(
+			row.locator( '.components-form-token-field__help' )
+		).toBeHidden();
+
+		await row.locator( '.ccfo-condition__value input' ).fill( 'Acme' );
+		await page.keyboard.press( 'Enter' );
+
+		await page.getByRole( 'button', { name: 'Save rules' } ).click();
+		await expect(
+			page.locator( '.components-notice' ).getByText( 'Rules saved.' )
+		).toBeVisible();
+		const stored = JSON.parse(
+			h.wp( 'option', 'get', 'ccfo_rules', '--format=json' )
+		);
+		expect( stored.rules[ 0 ].groups ).toEqual( [
+			[
+				{
+					source: 'field:billing_company',
+					operator: 'in',
+					value: [ 'Acme' ],
+				},
+			],
+		] );
+
+		// After reload, both steps show the saved choice.
+		await openRules( page );
+		await page.getByRole( 'button', { name: 'Edit' } ).first().click();
+		await expect(
+			page.getByRole( 'combobox', { name: 'Condition' } )
+		).toHaveValue( 'Field value: a checkout field…' );
+		await expect(
+			page.getByRole( 'combobox', { name: 'Checkout field' } )
+		).toHaveValue( /billing_company/ );
+		h.setRules( [] );
+	}
+);

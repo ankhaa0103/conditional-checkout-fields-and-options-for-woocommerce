@@ -25,6 +25,11 @@ body.ccfo-order-blocked .wc-block-components-checkout-place-order-button {
 }
 
 .ccfo-order-blocked--mini {
-	margin-top: 0.5em;
 	font-size: 0.9em;
+}
+
+/* Mini cart: the message sits in the buttons paragraph, above the disabled button. */
+.ccfo-order-blocked--mini {
+	display: block;
+	margin: 0 0 0.5em;
 }

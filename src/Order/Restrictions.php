@@ -22,11 +22,16 @@ use CCFO\Settings;
  * Two stages:
  *
  * - cart:     `block_checkout` rules. The cart's "Proceed to checkout" button and the
- *             mini cart's "Checkout" button are replaced by a disabled button and the
- *             rule messages.
+ *             mini cart's "Checkout" button are replaced by a disabled button.
  * - checkout: `block_checkout` and `block_order` rules. The "Place order" button is
- *             disabled and the messages are shown above it; the order is refused on
- *             submit (classic checkout here, Store API in Blocks\StoreApi).
+ *             disabled; the order is refused on submit (classic checkout here, Store
+ *             API in Blocks\StoreApi).
+ *
+ * The messages are shown at the top of the cart and checkout pages, after the
+ * WooCommerce notices. WooCommerce refreshes only parts of these pages (cart
+ * totals, the checkout payment section), so those parts carry the current messages
+ * as data and build/order-notices.js copies them to the top. The mini cart has no
+ * page top: its short message is shown above its disabled button.
  *
  * Any matching rule blocks; priority only orders the messages. The buttons are a
  * convenience: the server refuses the order whatever the browser sends.
@@ -63,7 +68,10 @@ final class Restrictions {
 		// Classic checkout: express payment buttons, messages and the "Place order" button.
 		add_action( 'woocommerce_checkout_before_customer_details', [ $this, 'checkout_express_start' ], 1 );
 		add_action( 'woocommerce_checkout_before_customer_details', [ $this, 'checkout_express_end' ], PHP_INT_MAX );
-		add_action( 'woocommerce_review_order_before_submit', [ $this, 'checkout_messages' ], 1 );
+		add_action( 'woocommerce_review_order_before_submit', [ $this, 'checkout_data' ], 1 );
+		// Messages at the top of the cart and checkout pages, after the WooCommerce notices.
+		add_action( 'woocommerce_before_cart', [ $this, 'cart_notices' ], 11 );
+		add_action( 'woocommerce_before_checkout_form', [ $this, 'checkout_notices' ], 11 );
 		add_filter( 'woocommerce_order_button_html', [ $this, 'order_button' ], 100 );
 		// Classic checkout submit.
 		add_action( 'woocommerce_after_checkout_validation', [ $this, 'validate_checkout' ], 100, 2 );
@@ -72,11 +80,24 @@ final class Restrictions {
 	}
 
 	/**
-	 * Enqueue the plugin styles when order rules exist.
+	 * Enqueue the plugin styles when order rules exist, and the script that keeps the
+	 * messages at the top of the classic cart and checkout pages current.
 	 */
 	public function enqueue_style(): void {
-		if ( $this->has_rules() ) {
-			wp_enqueue_style( 'ccfo-checkout', Plugin::url( 'assets/css/checkout.css' ), [], CCFO_VERSION );
+		if ( ! $this->has_rules() ) {
+			return;
+		}
+		wp_enqueue_style( 'ccfo-checkout', Plugin::url( 'assets/css/checkout.css' ), [], CCFO_VERSION );
+
+		if ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() ) ) {
+			$asset = Plugin::asset( 'order-notices' );
+			wp_enqueue_script(
+				'ccfo-order-notices',
+				Plugin::url( 'build/order-notices.js' ),
+				array_merge( $asset['dependencies'], [ 'jquery' ] ),
+				$asset['version'],
+				[ 'in_footer' => true ]
+			);
 		}
 	}
 
@@ -138,16 +159,21 @@ final class Restrictions {
 	 * Cart: replace the checkout button area when checkout is blocked.
 	 */
 	public function cart_area_start(): void {
-		$decision = $this->has_rules() ? $this->decide( self::STAGE_CART ) : null;
-		if ( null === $decision || ! $decision['blocked'] ) {
+		if ( ! $this->has_rules() ) {
+			return;
+		}
+		$decision = $this->decide( self::STAGE_CART );
+		// The cart totals are rendered again on every cart change: the current messages go with them.
+		echo self::messages_data( $decision['messages'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in messages_data().
+		if ( ! $decision['blocked'] ) {
 			return;
 		}
 
 		$this->remove_callbacks( 'woocommerce_proceed_to_checkout', [ 'wc_get_pay_buttons', 'woocommerce_button_proceed_to_checkout' ] );
 
-		echo self::messages_html( $decision['messages'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in messages_html().
 		printf(
-			'<button type="button" class="checkout-button button alt wc-forward ccfo-checkout-disabled" disabled aria-disabled="true">%s</button>',
+			'<button type="button" class="checkout-button button alt wc-forward ccfo-checkout-disabled%s" disabled aria-disabled="true">%s</button>',
+			esc_attr( self::theme_button_class() ),
 			esc_html__( 'Proceed to checkout', 'woocommerce' ) // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Same label WooCommerce prints.
 		);
 	}
@@ -175,15 +201,18 @@ final class Restrictions {
 	}
 
 	/**
-	 * Mini cart: disabled checkout button and messages.
+	 * Mini cart: short message above a disabled checkout button.
+	 *
+	 * The buttons sit in a paragraph (`<p class="buttons">`), so the message is a span.
 	 */
 	public function mini_cart_disabled_button(): void {
 		$decision = $this->decide( self::STAGE_CART );
+		echo self::messages_html( $decision['messages'], 'ccfo-order-blocked--mini', 'span' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in messages_html().
 		printf(
-			'<button type="button" class="button checkout wc-forward ccfo-checkout-disabled" disabled aria-disabled="true">%s</button>',
+			'<button type="button" class="button checkout wc-forward ccfo-checkout-disabled%s" disabled aria-disabled="true">%s</button>',
+			esc_attr( self::theme_button_class() ),
 			esc_html__( 'Checkout', 'woocommerce' ) // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- Same label WooCommerce prints.
 		);
-		echo self::messages_html( $decision['messages'], 'ccfo-order-blocked--mini' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in messages_html().
 	}
 
 	/**
@@ -211,16 +240,30 @@ final class Restrictions {
 	}
 
 	/**
-	 * Classic checkout: messages above the "Place order" button. The payment
-	 * section is rendered again on every `update_checkout`, so they stay current.
+	 * Classic checkout: the current messages as data in the payment section, which
+	 * is rendered again on every `update_checkout`.
 	 */
-	public function checkout_messages(): void {
-		if ( ! $this->has_rules() ) {
-			return;
+	public function checkout_data(): void {
+		if ( $this->has_rules() ) {
+			echo self::messages_data( $this->decide( self::STAGE_CHECKOUT )['messages'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in messages_data().
 		}
-		$decision = $this->decide( self::STAGE_CHECKOUT );
-		if ( $decision['blocked'] ) {
-			echo self::messages_html( $decision['messages'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in messages_html().
+	}
+
+	/**
+	 * Cart page: messages at the top.
+	 */
+	public function cart_notices(): void {
+		if ( $this->has_rules() ) {
+			echo self::notices_html( $this->decide( self::STAGE_CART )['messages'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in notices_html().
+		}
+	}
+
+	/**
+	 * Checkout page: messages at the top.
+	 */
+	public function checkout_notices(): void {
+		if ( $this->has_rules() ) {
+			echo self::notices_html( $this->decide( self::STAGE_CHECKOUT )['messages'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in notices_html().
 		}
 	}
 
@@ -296,17 +339,48 @@ final class Restrictions {
 	 *
 	 * @param list<string> $messages Messages.
 	 * @param string       $modifier Extra class.
+	 * @param string       $tag      div or span.
 	 */
-	public static function messages_html( array $messages, string $modifier = '' ): string {
+	public static function messages_html( array $messages, string $modifier = '', string $tag = 'div' ): string {
+		$tag  = 'span' === $tag ? 'span' : 'div';
 		$html = '';
 		foreach ( $messages as $message ) {
 			$html .= sprintf(
-				'<div class="woocommerce-info ccfo-order-blocked %s" role="status">%s</div>',
+				'<%1$s class="woocommerce-info ccfo-order-blocked %2$s" role="status">%3$s</%1$s>',
+				$tag,
 				esc_attr( $modifier ),
 				esc_html( $message )
 			);
 		}
 		return $html;
+	}
+
+	/**
+	 * Messages at the top of a page, as WooCommerce notices. The container is always
+	 * printed, so the script can fill it when a message appears later.
+	 *
+	 * @param list<string> $messages Messages.
+	 */
+	public static function notices_html( array $messages ): string {
+		return '<div class="ccfo-order-notices" aria-live="polite">' . self::messages_html( $messages, 'ccfo-order-notice' ) . '</div>';
+	}
+
+	/**
+	 * Current messages as data for build/order-notices.js.
+	 *
+	 * @param list<string> $messages Messages.
+	 */
+	public static function messages_data( array $messages ): string {
+		return sprintf( '<span class="ccfo-order-notices-data" hidden data-messages="%s"></span>', esc_attr( (string) wp_json_encode( array_values( $messages ) ) ) );
+	}
+
+	/**
+	 * The block theme button class WooCommerce adds to its own buttons
+	 * (" wp-element-button" in block themes, "" otherwise).
+	 */
+	private static function theme_button_class(): string {
+		$class = function_exists( 'wc_wp_theme_get_element_class_name' ) ? (string) wc_wp_theme_get_element_class_name( 'button' ) : '';
+		return '' === $class ? '' : ' ' . $class;
 	}
 
 	/**
