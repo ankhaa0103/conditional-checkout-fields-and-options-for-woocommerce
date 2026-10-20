@@ -3,7 +3,7 @@
  * Plugin Name:          Conditional Checkout Fields and Options for WooCommerce
  * Plugin URI:           https://github.com/ankhaa0103/conditional-checkout-fields-and-options-for-woocommerce
  * Description:          Conditional rules for existing WooCommerce checkout fields, payment methods, shipping rates and tax display.
- * Version:              1.1.1
+ * Version:              1.1.2
  * Requires at least:    6.6
  * Requires PHP:         8.1
  * Requires Plugins:     woocommerce
@@ -20,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CCFO_VERSION', '1.1.1' );
+define( 'CCFO_VERSION', '1.1.2' );
 define( 'CCFO_FILE', __FILE__ );
 define( 'CCFO_DIR', plugin_dir_path( __FILE__ ) );
 

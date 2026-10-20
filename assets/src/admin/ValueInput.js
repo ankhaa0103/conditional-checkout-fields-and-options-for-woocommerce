@@ -44,6 +44,17 @@ function TokenInput( { value, options, onChange, free = false, onInput } ) {
 				'conditional-checkout-fields-and-options-for-woocommerce'
 			) }
 			hideLabelFromVision
+			placeholder={
+				free
+					? __(
+							'Type a value and press Enter',
+							'conditional-checkout-fields-and-options-for-woocommerce'
+					  )
+					: __(
+							'Type to search',
+							'conditional-checkout-fields-and-options-for-woocommerce'
+					  )
+			}
 			value={ tokens }
 			suggestions={ options.map( ( o ) => o.label ) }
 			onInputChange={ onInput }

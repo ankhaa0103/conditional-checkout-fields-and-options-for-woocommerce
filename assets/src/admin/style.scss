@@ -122,8 +122,35 @@
 	white-space: nowrap;
 }
 
-.ccfo-condition .components-form-token-field__help {
-	display: none;
+// The how-to text stays: it sits below the input and does not move the row.
+.ccfo-condition .components-form-token-field__help,
+.ccfo-condition__hint {
+	margin: 4px 0 0;
+	color: #757575;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.ccfo-condition__hint .components-button.is-link {
+	font-size: 12px;
+	vertical-align: baseline;
+}
+
+// "Enabled" after "Rule name" and "Priority", centred on their inputs.
+.ccfo-editor__enabled {
+	display: flex;
+	flex-direction: column;
+}
+
+.ccfo-editor__label-space {
+	display: block;
+	visibility: hidden;
+}
+
+.ccfo-editor__enabled-box {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
 }
 
 // Search lists float over the content below instead of pushing it down, and show

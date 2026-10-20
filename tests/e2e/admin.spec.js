@@ -153,6 +153,18 @@ test(
 		const name = await page.getByLabel( 'Rule name' ).boundingBox();
 		const priority = await page.getByLabel( 'Priority' ).boundingBox();
 		expect( Math.abs( name.y - priority.y ) ).toBeLessThan( 2 );
+		// "Enabled" comes after them, centred on their inputs.
+		const toggle = await page
+			.locator( '.ccfo-editor__enabled .components-form-toggle' )
+			.boundingBox();
+		expect( toggle.x ).toBeGreaterThan( priority.x + priority.width );
+		expect(
+			Math.abs(
+				toggle.y +
+					toggle.height / 2 -
+					( priority.y + priority.height / 2 )
+			)
+		).toBeLessThan( 2 );
 
 		await page.getByLabel( 'Applies to' ).selectOption( 'shipping' );
 		const method = page.getByRole( 'combobox', {
@@ -204,7 +216,8 @@ test(
 			.click();
 		await page.getByLabel( 'Operator' ).selectOption( 'in' );
 
-		// The value input is on the same line as the condition (no visible label or how-to).
+		// The value input is on the same line as the condition (no visible label);
+		// the how-to text is shown below it.
 		const row = page.locator( '.ccfo-condition' ).first();
 		const sourceBox = await row
 			.locator(
@@ -219,7 +232,10 @@ test(
 		expect( Math.abs( sourceBox.y - valueBox.y ) ).toBeLessThan( 3 );
 		await expect(
 			row.locator( '.components-form-token-field__help' )
-		).toBeHidden();
+		).toBeVisible();
+		await expect(
+			row.locator( '.ccfo-condition__value input' )
+		).toHaveAttribute( 'placeholder', 'Type a value and press Enter' );
 
 		await row.locator( '.ccfo-condition__value input' ).fill( 'Acme' );
 		await page.keyboard.press( 'Enter' );
@@ -253,3 +269,59 @@ test(
 		h.setRules( [] );
 	}
 );
+
+test( 'several values typed into a one-value text condition', async ( {
+	page,
+} ) => {
+	h.setRules( [
+		h.rule( 'co', 'payment', 'bacs', 'enable', [
+			[
+				{
+					source: 'field:billing_company',
+					operator: 'contains',
+					value: 'ewq,ttwet,tewt',
+				},
+			],
+		] ),
+	] );
+	await h.useAdmin( page );
+	await openRules( page );
+	await page.getByRole( 'button', { name: 'Edit' } ).first().click();
+	const row = page.locator( '.ccfo-condition' ).first();
+	const hint = row.locator( '.ccfo-condition__hint' );
+
+	// "contains" has no list form: explain the OR group.
+	await expect( hint ).toContainText(
+		'This compares the whole text "ewq,ttwet,tewt".'
+	);
+	await expect( hint ).toContainText( 'add an OR group for each word' );
+	await expect( hint.getByRole( 'button' ) ).toHaveCount( 0 );
+
+	// "is" can switch to "is one of" with the values split.
+	await page.getByLabel( 'Operator' ).selectOption( 'equals' );
+	await hint.getByRole( 'button', { name: 'Use "is one of"' } ).click();
+	await expect( page.getByLabel( 'Operator' ) ).toHaveValue( 'in' );
+	await expect( hint ).toHaveCount( 0 );
+	await expect(
+		row.locator( '.components-form-token-field__token' )
+	).toHaveCount( 3 );
+
+	await page.getByRole( 'button', { name: 'Save rules' } ).click();
+	await expect(
+		page.locator( '.components-notice' ).getByText( 'Rules saved.' )
+	).toBeVisible();
+	const stored = JSON.parse(
+		h.wp( 'option', 'get', 'ccfo_rules', '--format=json' )
+	);
+	expect( stored.rules[ 0 ].groups[ 0 ][ 0 ] ).toEqual( {
+		source: 'field:billing_company',
+		operator: 'in',
+		value: [ 'ewq', 'ttwet', 'tewt' ],
+	} );
+
+	// One value: no hint.
+	await page.getByLabel( 'Operator' ).selectOption( 'not_equals' );
+	await row.locator( '.ccfo-condition__value input' ).fill( 'Acme' );
+	await expect( hint ).toHaveCount( 0 );
+	h.setRules( [] );
+} );

@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Conditional Checkout Fields and Options for WooCommerce 1.1.1\n"
+"Project-Id-Version: Conditional Checkout Fields and Options for WooCommerce 1.1.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/conditional-checkout-fields-and-options-for-woocommerce\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-20T10:10:52+08:00\n"
+"POT-Creation-Date: 2026-10-20T19:06:57+08:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: conditional-checkout-fields-and-options-for-woocommerce\n"
@@ -631,6 +631,14 @@ msgid "Values"
 msgstr ""
 
 #: build/admin.js:2
+msgid "Type a value and press Enter"
+msgstr ""
+
+#: build/admin.js:2
+msgid "Type to search"
+msgstr ""
+
+#: build/admin.js:2
 msgid "Value"
 msgstr ""
 
@@ -648,6 +656,32 @@ msgstr ""
 
 #: build/admin.js:2
 msgid "Max"
+msgstr ""
+
+#. translators: %s: the text typed by the admin
+#: build/admin.js:2
+#, js-format
+msgid "This compares the whole text \"%s\"."
+msgstr ""
+
+#: build/admin.js:2
+msgid "To match one of several values, use \"is one of\"."
+msgstr ""
+
+#: build/admin.js:2
+msgid "To exclude several values, use \"is none of\"."
+msgstr ""
+
+#: build/admin.js:2
+msgid "Use \"is one of\""
+msgstr ""
+
+#: build/admin.js:2
+msgid "Use \"is none of\""
+msgstr ""
+
+#: build/admin.js:2
+msgid "To match any of several words, add an OR group for each word."
 msgstr ""
 
 #: build/admin.js:2

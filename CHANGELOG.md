@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.2 — 2026-10-20
+
+- **Rule editor:** the how-to text of list values ("Separate with commas or the Enter key.") is shown again below the input — it does not move the row; empty list inputs have a placeholder ("Type a value and press Enter" / "Type to search").
+- **Rule editor:** a one-value text condition ("is", "is not", "contains", "does not contain") that holds comma separated text explains that the whole text is compared. "is" / "is not" offer a one-click switch to "is one of" / "is none of" with the values split; "contains" explains to add an OR group per word.
+- **Rule editor:** "Enabled" sits after "Rule name" and "Priority", centred on their inputs. The toggle in the card header stays.
+- Tests: Jest `admin-values.test.js`; admin E2E for the hint, the switch, the how-to text and the toggle position.
+
 ## 1.1.1 — 2026-10-20
 
 - **Messages at the top of the page:** order rule messages are shown after the WooCommerce notices at the top of the classic cart and checkout pages (`.ccfo-order-notices`, `woocommerce-info`), not next to the buttons. The refreshed parts of the page carry the current messages as data and `build/order-notices.js` keeps the top up to date (checkout refresh, cart update, shipping change); new messages are scrolled into view. The mini cart shows its short message above the disabled button.

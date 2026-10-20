@@ -3,6 +3,7 @@
  */
 import { __, sprintf } from '@wordpress/i18n';
 import {
+	BaseControl,
 	Button,
 	ComboboxControl,
 	Flex,
@@ -22,6 +23,70 @@ import {
 } from './labels';
 import { fieldOptions, targetKeyOptions } from './options';
 import ValueInput from './ValueInput';
+import { commaHint, toListCondition } from './values';
+
+/**
+ * Note under a one-value text input that holds several comma separated values.
+ *
+ * @param {Object}   props
+ * @param {Object}   props.condition Condition.
+ * @param {string[]} props.operators Operators of the source.
+ * @param {Function} props.onChange  Change handler.
+ */
+function CommaHint( { condition, operators, onChange } ) {
+	const hint = commaHint( condition, operators );
+	if ( ! hint ) {
+		return null;
+	}
+	const text = sprintf(
+		/* translators: %s: the text typed by the admin */ __(
+			'This compares the whole text "%s".',
+			'conditional-checkout-fields-and-options-for-woocommerce'
+		),
+		condition.value
+	);
+	return (
+		<p className="ccfo-condition__hint">
+			{ text }{ ' ' }
+			{ hint.switchTo ? (
+				<>
+					{ hint.switchTo === 'in'
+						? __(
+								'To match one of several values, use "is one of".',
+								'conditional-checkout-fields-and-options-for-woocommerce'
+						  )
+						: __(
+								'To exclude several values, use "is none of".',
+								'conditional-checkout-fields-and-options-for-woocommerce'
+						  ) }{ ' ' }
+					<Button
+						variant="link"
+						onClick={ () =>
+							onChange(
+								toListCondition( condition, hint.switchTo )
+							)
+						}
+					>
+						{ hint.switchTo === 'in'
+							? __(
+									'Use "is one of"',
+									'conditional-checkout-fields-and-options-for-woocommerce'
+							  )
+							: __(
+									'Use "is none of"',
+									'conditional-checkout-fields-and-options-for-woocommerce'
+							  ) }
+					</Button>
+				</>
+			) : (
+				__(
+					'To match any of several words, add an OR group for each word.',
+					'conditional-checkout-fields-and-options-for-woocommerce'
+				)
+			) }
+		</p>
+	);
+}
 
 const CATEGORY_PREFIX = 'cart.category_subtotal:';
 const FIELD_PREFIX = 'field:';
@@ -252,6 +317,11 @@ function ConditionRow( {
 						onChange( { ...condition, value } )
 					}
 				/>
+				<CommaHint
+					condition={ condition }
+					operators={ operators }
+					onChange={ onChange }
+				/>
 			</FlexBlock>
 			<FlexItem>
 				<Button
@@ -338,16 +408,25 @@ export default function RuleEditor( { rule, definitions, catalog, onChange } ) {
 						}
 					/>
 				</FlexItem>
-				<FlexItem>
-					<ToggleControl
-						__nextHasNoMarginBottom
-						label={ __(
-							'Enabled',
-							'conditional-checkout-fields-and-options-for-woocommerce'
-						) }
-						checked={ rule.enabled }
-						onChange={ ( enabled ) => set( { enabled } ) }
-					/>
+				<FlexItem className="ccfo-editor__enabled">
+					{ /* An empty label line, so the toggle is centred on the inputs, not on the labels. */ }
+					<BaseControl.VisualLabel
+						className="ccfo-editor__label-space"
+						aria-hidden="true"
+					>
+						&nbsp;
+					</BaseControl.VisualLabel>
+					<div className="ccfo-editor__enabled-box">
+						<ToggleControl
+							__nextHasNoMarginBottom
+							label={ __(
+								'Enabled',
+								'conditional-checkout-fields-and-options-for-woocommerce'
+							) }
+							checked={ rule.enabled }
+							onChange={ ( enabled ) => set( { enabled } ) }
+						/>
+					</div>
 				</FlexItem>
 			</Flex>
 

@@ -4,7 +4,7 @@ Tags: woocommerce, checkout, conditional fields, payment methods, shipping metho
 Requires at least: 6.6
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -126,6 +126,11 @@ Yes, uninstalling removes the rules and settings. The record of applied rules on
 
 == Changelog ==
 
+= 1.1.2 =
+* Rule editor: the how-to text for lists of values is shown again, and empty list inputs have a placeholder.
+* Rule editor: a text condition that holds several comma separated values explains that the whole text is compared, and "is" / "is not" can switch to "is one of" / "is none of" in one click.
+* Rule editor: the "Enabled" switch is centred next to the rule name and priority.
+
 = 1.1.1 =
 * Order rule messages are shown at the top of the cart and checkout pages, like WooCommerce notices, instead of next to the buttons. The mini cart shows its short message above the disabled button.
 * Rule editor: checkout fields and product categories are chosen in two steps, so the condition list stays short.
@@ -148,6 +153,9 @@ Yes, uninstalling removes the rules and settings. The record of applied rules on
 * HPOS and Cart and Checkout Blocks compatible.
 
 == Upgrade Notice ==
+
+= 1.1.2 =
+Clearer rule editor for lists of values.
 
 = 1.1.1 =
 Order rule messages at the top of the page and an easier rule editor.
