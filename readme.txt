@@ -129,7 +129,7 @@ Yes, uninstalling removes the rules and settings. The record of applied rules on
 = 1.1.2 =
 * Rule editor: the how-to text for lists of values is shown again, and empty list inputs have a placeholder.
 * Rule editor: a text condition that holds several comma separated values explains that the whole text is compared, and "is" / "is not" can switch to "is one of" / "is none of" in one click.
-* Rule editor: the "Enabled" switch is centred next to the rule name and priority.
+* Rule editor: the "Enabled" switch is centered next to the rule name and priority.
 
 = 1.1.1 =
 * Order rule messages are shown at the top of the cart and checkout pages, like WooCommerce notices, instead of next to the buttons. The mini cart shows its short message above the disabled button.
